@@ -1,14 +1,19 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { NumberInput } from "@/components/ui/number-input";
+
+interface Segment {
+    id: number;
+    distance: number | string;
+    load: number | string;
+}
 
 export function LineSegments() {
-    const [segments, setSegments] = useState([
+    const [segments, setSegments] = useState<Segment[]>([
         { id: 1, distance: 19, load: 20.43 },
         { id: 2, distance: 11, load: 12.28 },
         { id: 3, distance: 8, load: 7.28 },
@@ -24,10 +29,10 @@ export function LineSegments() {
         setSegments(segments.filter((s) => s.id !== id));
     };
 
-    const updateSegment = (id: number, field: 'distance' | 'load', value: string) => {
+    const updateSegment = (id: number, field: 'distance' | 'load', value: number | string) => {
         setSegments(
             segments.map((s) =>
-                s.id === id ? { ...s, [field]: parseFloat(value) || 0 } : s
+                s.id === id ? { ...s, [field]: value } : s
             )
         );
     };
@@ -52,20 +57,18 @@ export function LineSegments() {
                     <div key={segment.id} className="grid grid-cols-12 gap-4 items-center bg-slate-800/50 p-2 rounded-md border border-slate-800/50 hover:border-slate-700 transition-colors">
                         <div className="col-span-1 text-center text-gray-500 text-xs font-mono">#{index + 1}</div>
                         <div className="col-span-5">
-                            <Input
-                                type="number"
+                            <NumberInput
                                 value={segment.distance}
-                                onChange={(e) => updateSegment(segment.id, 'distance', e.target.value)}
-                                className="bg-transparent border-0 border-b border-transparent focus-visible:border-blue-500 rounded-none px-0 h-8 text-white placeholder:text-gray-600 focus-visible:ring-0"
+                                onChange={(val) => updateSegment(segment.id, 'distance', val)}
+                                className="h-8 border-transparent focus-within:border-blue-500/50 bg-transparent"
                                 placeholder="0"
                             />
                         </div>
                         <div className="col-span-5">
-                            <Input
-                                type="number"
+                            <NumberInput
                                 value={segment.load}
-                                onChange={(e) => updateSegment(segment.id, 'load', e.target.value)}
-                                className="bg-transparent border-0 border-b border-transparent focus-visible:border-blue-500 rounded-none px-0 h-8 text-white placeholder:text-gray-600 focus-visible:ring-0"
+                                onChange={(val) => updateSegment(segment.id, 'load', val)}
+                                className="h-8 border-transparent focus-within:border-blue-500/50 bg-transparent"
                                 placeholder="0"
                             />
                         </div>
