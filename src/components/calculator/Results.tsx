@@ -2,13 +2,29 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Info, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Info, CheckCircle2, Printer } from "lucide-react";
 
 export function CalculatorResults() {
+    const handlePrint = () => {
+        window.print();
+    };
+
     return (
         <Card className="bg-slate-900 border-slate-800 h-fit">
-            <CardHeader>
-                <CardTitle className="text-sm font-bold text-blue-500 tracking-wider">CALCULATION RESULTS</CardTitle>
+            <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-bold text-blue-500 tracking-wider">CALCULATION RESULTS</CardTitle>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-blue-500 hover:text-blue-400 hover:bg-blue-500/10"
+                        onClick={handlePrint}
+                        title="Print Results"
+                    >
+                        <Printer className="w-4 h-4" />
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent className="space-y-6">
 
