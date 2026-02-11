@@ -11,10 +11,12 @@ import { Zap } from "lucide-react";
 import { CalculatorProvider, useCalculator } from "@/context/CalculatorContext";
 import { useCalculation } from "@/hooks/useCalculation";
 import { CalculationRequest } from "@/types/calculater";
+import { useQueryClient } from "@tanstack/react-query";
 
 function CalculatorContent() {
-  const { projectDetails, technicalParams, segments, setCalculationResult, addToHistory } = useCalculator();
+  const { projectDetails, technicalParams, segments, setCalculationResult } = useCalculator();
   const { mutate, isPending } = useCalculation();
+  const queryClient = useQueryClient();
 
   const handleCalculate = () => {
     const requestData: CalculationRequest = {
@@ -44,14 +46,7 @@ function CalculatorContent() {
     mutate(requestData, {
       onSuccess: (data) => {
         setCalculationResult(data);
-        addToHistory({
-          id: data.calculation_id || Date.now(),
-          title: data.inputs.project_name || "Unknown Project",
-          details: `${data.inputs.supply_voltage_kv} KV • ${data.inputs.conductor_type} • ${data.inputs.total_distance_km} KM`,
-          date: new Date().toLocaleString(),
-          percentage: `${data.voltage_regulation}%`,
-          status: data.status === "PASS" ? "Pass" : "Fail"
-        });
+        queryClient.invalidateQueries({ queryKey: ['history'] });
       }
     });
   };
