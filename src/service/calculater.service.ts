@@ -10,3 +10,8 @@ export const fetchProjects = async (skip: number = 0, limit: number = 10): Promi
     const response = await apiClient.get<ProjectsResponse>(`/projects/?skip=${skip}&limit=${limit}`);
     return response.data;
 };
+
+export const deleteProject = async (id: number): Promise<{ message: string; id: number }> => {
+    const response = await apiClient.delete<{ message: string; id: number }>(`/projects/${id}`);
+    return response.data;
+};

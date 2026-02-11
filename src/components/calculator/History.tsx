@@ -1,14 +1,15 @@
 "use client";
 
-import { useHistory } from "@/hooks/useHistory";
+import { useHistory, useDeleteHistory } from "@/hooks/useHistory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { History, CheckCircle2, Trash2, XCircle } from "lucide-react";
-import { format } from "date-fns";
+import { DeleteConfirmation } from "./DeleteConfirmation";
 
 export function CalculationHistory() {
     const { data, isLoading, isError } = useHistory();
+    const { mutate: deleteHistory, isPending: isDeleting } = useDeleteHistory();
     const history = data?.projects || [];
 
     return (
@@ -35,7 +36,7 @@ export function CalculationHistory() {
                                     {item.supply_voltage_kv} KV • {item.conductor_type} • {item.total_distance_km} KM
                                 </div>
                                 <div className="text-[10px] text-gray-500">
-                                    {item.created_at ? format(new Date(item.created_at), "dd MMM yyyy, HH:mm") : "N/A"}
+                                    {item.created_at ? new Date(item.created_at).toLocaleString() : "N/A"}
                                 </div>
                             </div>
                             <div className="text-right">
@@ -47,7 +48,19 @@ export function CalculationHistory() {
                                 </div>
                             </div>
 
-                            {/* Delete button removed or disabled as per API constraints for now */}
+                            <DeleteConfirmation
+                                onConfirm={() => deleteHistory(item.id)}
+                                trigger={
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 text-slate-500 hover:text-red-400 hover:bg-slate-700/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        disabled={isDeleting}
+                                    >
+                                        <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                }
+                            />
                         </div>
                     ))
                 )}
