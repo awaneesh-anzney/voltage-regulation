@@ -1,34 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useCalculator } from "@/context/CalculatorContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NumberInput } from "@/components/ui/number-input";
 
 export function TechnicalParameters() {
-    const [params, setParams] = useState<{
-        voltage: number | string;
-        current: number | string;
-        conductorSize: number | string;
-        conductorType: string;
-        distance: number | string;
-        powerFactor: number | string;
-        diversityFactor: number | string;
-        resistance: number | string;
-    }>({
-        voltage: 33,
-        current: 445,
-        conductorSize: 100,
-        conductorType: "Dog Conductor",
-        distance: 38,
-        powerFactor: 1,
-        diversityFactor: 1.5,
-        resistance: 0.2792
-    });
+    const { technicalParams, setTechnicalParams } = useCalculator();
 
     const updateParam = (key: string, value: number | string) => {
-        setParams(prev => ({ ...prev, [key]: value }));
+        setTechnicalParams(prev => ({ ...prev, [key]: value }));
     };
 
     return (
@@ -41,21 +23,21 @@ export function TechnicalParameters() {
                     <div className="space-y-2">
                         <Label className="text-xs text-gray-400 uppercase">Supply Voltage (KV)</Label>
                         <NumberInput
-                            value={params.voltage}
+                            value={technicalParams.voltage}
                             onChange={(val) => updateParam('voltage', val)}
                         />
                     </div>
                     <div className="space-y-2">
                         <Label className="text-xs text-gray-400 uppercase">Current (Amps)</Label>
                         <NumberInput
-                            value={params.current}
+                            value={technicalParams.current}
                             onChange={(val) => updateParam('current', val)}
                         />
                     </div>
                     <div className="space-y-2">
                         <Label className="text-xs text-gray-400 uppercase">Conductor Size (SQMM)</Label>
                         <NumberInput
-                            value={params.conductorSize}
+                            value={technicalParams.conductorSize}
                             onChange={(val) => updateParam('conductorSize', val)}
                         />
                     </div>
@@ -63,8 +45,8 @@ export function TechnicalParameters() {
                         <Label className="text-xs text-gray-400 uppercase">Conductor Type</Label>
                         <Input
                             className="bg-slate-800 border-slate-700 text-white h-10"
-                            value={params.conductorType}
-                            onChange={(e) => setParams(prev => ({ ...prev, conductorType: e.target.value }))}
+                            value={technicalParams.conductorType}
+                            onChange={(e) => setTechnicalParams(prev => ({ ...prev, conductorType: e.target.value }))}
                         />
                     </div>
                 </div>
@@ -73,14 +55,14 @@ export function TechnicalParameters() {
                     <div className="space-y-2">
                         <Label className="text-xs text-gray-400 uppercase">Total Distance (KM)</Label>
                         <NumberInput
-                            value={params.distance}
+                            value={technicalParams.distance}
                             onChange={(val) => updateParam('distance', val)}
                         />
                     </div>
                     <div className="space-y-2">
                         <Label className="text-xs text-gray-400 uppercase">Power Factor (cosØ)</Label>
                         <NumberInput
-                            value={params.powerFactor}
+                            value={technicalParams.powerFactor}
                             onChange={(val) => updateParam('powerFactor', val)}
                             step={0.1}
                             max={1}
@@ -89,7 +71,7 @@ export function TechnicalParameters() {
                     <div className="space-y-2">
                         <Label className="text-xs text-gray-400 uppercase">Diversity Factor</Label>
                         <NumberInput
-                            value={params.diversityFactor}
+                            value={technicalParams.diversityFactor}
                             onChange={(val) => updateParam('diversityFactor', val)}
                             step={0.1}
                         />
@@ -97,7 +79,7 @@ export function TechnicalParameters() {
                     <div className="space-y-2">
                         <Label className="text-xs text-gray-400 uppercase">Resistance (Ω/KM)</Label>
                         <NumberInput
-                            value={params.resistance}
+                            value={technicalParams.resistance}
                             onChange={(val) => updateParam('resistance', val)}
                             step={0.0001}
                         />

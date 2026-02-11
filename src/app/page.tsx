@@ -1,3 +1,5 @@
+"use client";
+
 import { Header } from "@/components/calculator/Header";
 import { ProjectDetails } from "@/components/calculator/ProjectDetails";
 import { TechnicalParameters } from "@/components/calculator/TechnicalParameters";
@@ -6,8 +8,54 @@ import { CalculatorResults } from "@/components/calculator/Results";
 import { CalculationHistory } from "@/components/calculator/History";
 import { Button } from "@/components/ui/button";
 import { Zap } from "lucide-react";
+import { CalculatorProvider, useCalculator } from "@/context/CalculatorContext";
+import { useCalculation } from "@/hooks/useCalculation";
+import { CalculationRequest } from "@/types/calculater";
 
-export default function Home() {
+function CalculatorContent() {
+  const { projectDetails, technicalParams, segments, setCalculationResult, addToHistory } = useCalculator();
+  const { mutate, isPending } = useCalculation();
+
+  const handleCalculate = () => {
+    const requestData: CalculationRequest = {
+      project_name: projectDetails.projectName,
+      client_name: projectDetails.clientName,
+      supply_point: projectDetails.supplyPoint,
+      feeding_point: projectDetails.feedingPoint,
+      supply_voltage_kv: Number(technicalParams.voltage),
+      current_amps: Number(technicalParams.current),
+      conductor_size: String(technicalParams.conductorSize),
+      conductor_type: technicalParams.conductorType,
+      total_distance_km: Number(technicalParams.distance),
+      power_factor: Number(technicalParams.powerFactor),
+      diversity_factor: Number(technicalParams.diversityFactor),
+      resistance: Number(technicalParams.resistance),
+      acceptable_limit: Number(technicalParams.acceptableLimit),
+      reactance: Number(technicalParams.reactance),
+      consider_reactance: technicalParams.considerReactance,
+      segments: segments
+        .filter(s => Number(s.distance) > 0 || Number(s.load) > 0)
+        .map(s => ({
+          length: Number(s.distance),
+          power: Number(s.load)
+        }))
+    };
+
+    mutate(requestData, {
+      onSuccess: (data) => {
+        setCalculationResult(data);
+        addToHistory({
+          id: data.calculation_id || Date.now(),
+          title: data.inputs.project_name || "Unknown Project",
+          details: `${data.inputs.supply_voltage_kv} KV • ${data.inputs.conductor_type} • ${data.inputs.total_distance_km} KM`,
+          date: new Date().toLocaleString(),
+          percentage: `${data.voltage_regulation}%`,
+          status: data.status === "PASS" ? "Pass" : "Fail"
+        });
+      }
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background font-sans">
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40">
@@ -23,9 +71,13 @@ export default function Home() {
             <TechnicalParameters />
             <LineSegments />
 
-            <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-6 text-sm tracking-wide">
-              <Zap className="mr-2 h-4 w-4 fill-current" />
-              CALCULATE VOLTAGE REGULATION
+            <Button
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-6 text-sm tracking-wide"
+              onClick={handleCalculate}
+              disabled={isPending}
+            >
+              <Zap className={`mr-2 h-4 w-4 fill-current ${isPending ? 'animate-pulse' : ''}`} />
+              {isPending ? "CALCULATING..." : "CALCULATE VOLTAGE REGULATION"}
             </Button>
           </div>
 
@@ -36,5 +88,13 @@ export default function Home() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <CalculatorProvider>
+      <CalculatorContent />
+    </CalculatorProvider>
   );
 }

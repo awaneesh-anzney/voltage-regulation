@@ -1,25 +1,11 @@
-"use client";
-
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
 import { NumberInput } from "@/components/ui/number-input";
-
-interface Segment {
-    id: number;
-    distance: number | string;
-    load: number | string;
-}
+import { useCalculator } from "@/context/CalculatorContext";
 
 export function LineSegments() {
-    const [segments, setSegments] = useState<Segment[]>([
-        { id: 1, distance: 19, load: 20.43 },
-        { id: 2, distance: 11, load: 12.28 },
-        { id: 3, distance: 8, load: 7.28 },
-        { id: 4, distance: 0, load: 0 },
-        { id: 5, distance: 0, load: 0 },
-    ]);
+    const { segments, setSegments } = useCalculator();
 
     const addSegment = () => {
         setSegments([...segments, { id: Date.now(), distance: 0, load: 0 }]);

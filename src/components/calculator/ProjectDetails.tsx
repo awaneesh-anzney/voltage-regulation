@@ -4,8 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Zap } from "lucide-react";
+import { useCalculator } from "@/context/CalculatorContext";
 
 export function ProjectDetails() {
+    const { projectDetails, setProjectDetails } = useCalculator();
+
     return (
         <Card className="bg-slate-900 border-slate-800">
             <CardHeader>
@@ -18,21 +21,41 @@ export function ProjectDetails() {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label className="text-xs text-gray-400 uppercase">Project Name</Label>
-                        <Input className="bg-slate-800 border-slate-700 text-white placeholder:text-gray-500" placeholder="LAVGAN SHIP REPAIR YARD..." />
+                        <Input
+                            className="bg-slate-800 border-slate-700 text-white placeholder:text-gray-500"
+                            placeholder="Project Name"
+                            value={projectDetails.projectName}
+                            onChange={(e) => setProjectDetails(prev => ({ ...prev, projectName: e.target.value }))}
+                        />
                     </div>
                     <div className="space-y-2">
                         <Label className="text-xs text-gray-400 uppercase">Client Name</Label>
-                        <Input className="bg-slate-800 border-slate-700 text-white placeholder:text-gray-500" placeholder="JAIGAD PORTS INFRASTRUCTURE..." />
+                        <Input
+                            className="bg-slate-800 border-slate-700 text-white placeholder:text-gray-500"
+                            placeholder="Client Name"
+                            value={projectDetails.clientName}
+                            onChange={(e) => setProjectDetails(prev => ({ ...prev, clientName: e.target.value }))}
+                        />
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label className="text-xs text-gray-400 uppercase">Supply Point</Label>
-                        <Input className="bg-slate-800 border-slate-700 text-white placeholder:text-gray-500" placeholder="Nivali Substation" />
+                        <Input
+                            className="bg-slate-800 border-slate-700 text-white placeholder:text-gray-500"
+                            placeholder="Nivali Substation"
+                            value={projectDetails.supplyPoint}
+                            onChange={(e) => setProjectDetails(prev => ({ ...prev, supplyPoint: e.target.value }))}
+                        />
                     </div>
                     <div className="space-y-2">
                         <Label className="text-xs text-gray-400 uppercase">Feeding Point</Label>
-                        <Input className="bg-slate-800 border-slate-700 text-white placeholder:text-gray-500" placeholder="JSW" />
+                        <Input
+                            className="bg-slate-800 border-slate-700 text-white placeholder:text-gray-500"
+                            placeholder="JSW"
+                            value={projectDetails.feedingPoint}
+                            onChange={(e) => setProjectDetails(prev => ({ ...prev, feedingPoint: e.target.value }))}
+                        />
                     </div>
                 </div>
             </CardContent>
