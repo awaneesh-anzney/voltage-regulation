@@ -7,7 +7,7 @@ export const performCalculation = async (data: CalculationRequest): Promise<Calc
 };
 
 export const fetchProjects = async (skip: number = 0, limit: number = 10): Promise<ProjectsResponse> => {
-    const response = await apiClient.get<ProjectsResponse>(`/projects/?skip=${skip}&limit=${limit}`);
+    const response = await apiClient.get<ProjectsResponse>(`/projects?skip=${skip}&limit=${limit}`);
     return response.data;
 };
 

@@ -36,7 +36,9 @@ export function CalculationHistory() {
                                     {item.supply_voltage_kv} KV • {item.conductor_type} • {item.total_distance_km} KM
                                 </div>
                                 <div className="text-[10px] text-gray-500">
-                                    {item.created_at ? new Date(item.created_at).toLocaleString() : "N/A"}
+                                    {item.created_at 
+                                        ? new Date(item.created_at.endsWith("Z") || item.created_at.includes("+") ? item.created_at : `${item.created_at}Z`).toLocaleString() 
+                                        : "N/A"}
                                 </div>
                             </div>
                             <div className="text-right">
