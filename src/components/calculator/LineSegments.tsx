@@ -8,7 +8,7 @@ export function LineSegments() {
     const { segments, setSegments } = useCalculator();
 
     const addSegment = () => {
-        setSegments([...segments, { id: Date.now(), distance: 0, load: 0 }]);
+        setSegments([...segments, { id: Date.now(), distance: '', load: '' }]);
     };
 
     const removeSegment = (id: number) => {
