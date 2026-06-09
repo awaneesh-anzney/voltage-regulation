@@ -229,7 +229,7 @@ export function TechnicalParameters() {
                             >
                                 <option value="" disabled>Select Conductor</option>
                                 {Object.keys(CONDUCTOR_DATABASE).map(name => (
-                                    <option key={name} value={name}>ACSR {name}</option>
+                                    <option key={name} value={name}>{name}</option>
                                 ))}
                                 <option value="custom">Custom (Specify...)</option>
                             </select>
