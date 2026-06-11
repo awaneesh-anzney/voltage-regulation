@@ -124,3 +124,36 @@
     @apply bg-background text-foreground;
   }
 }
+
+.sidebar-input, .sidebar-select {
+  font-size: 12px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  background: #1a2332;
+  color: #f1f5f9;
+  width: 100%;
+  transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+  outline: none;
+}
+.sidebar-input:focus, .sidebar-select:focus {
+  border-color: rgba(59,130,246,0.5);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+.sidebar-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 28px;
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
