@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import {
   Zap, BarChart3, DollarSign, Shield, Sparkles, FileText,
-  AlertTriangle
+  AlertTriangle, Menu, X as XIcon
 } from "lucide-react";
 import { getDemoAnalysisData, CONDUCTORS, calculateRegulation, findOptimalTap, runOptimizer } from "@/lib/gridCalculations";
 import type { AnalysisData, OptimalConfig, SegmentResult } from "@/lib/gridCalculations";
@@ -28,6 +28,7 @@ type TabId = (typeof TABS)[number]["id"];
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<TabId>("analyzer");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Sidebar parameters state
   const [projName, setProjName] = useState("Riyadh North Feeder");
@@ -161,19 +162,26 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col h-screen bg-[#0B0F19] text-slate-100 overflow-hidden">
       {/* TOP BAR */}
-      <header className="flex items-center justify-between px-5 h-[52px] min-h-[52px] bg-[#0f1520]/85 backdrop-blur-xl border-b border-white/[0.06] z-50">
+      <header className="flex items-center justify-between px-3 sm:px-5 h-[52px] min-h-[52px] bg-[#0f1520]/85 backdrop-blur-xl border-b border-white/[0.06] z-50">
         <div className="flex items-center gap-2.5">
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="lg:hidden flex items-center justify-center w-8 h-8 rounded-md text-slate-400 hover:text-white hover:bg-white/[0.06] transition-all cursor-pointer"
+            aria-label="Toggle sidebar"
+          >
+            {sidebarOpen ? <XIcon className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
           <div className="w-8 h-8 rounded-md bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
             <Zap className="w-4 h-4 text-white" />
           </div>
-          <span className="text-[15px] font-semibold tracking-tight">
+          <span className="text-[15px] font-semibold tracking-tight hidden sm:inline">
             GridIntel
           </span>
-
         </div>
 
-        {/* TABS */}
-        <nav className="flex gap-0.5 bg-white/[0.03] rounded-lg p-[3px]">
+        {/* TABS - horizontally scrollable on mobile */}
+        <nav className="flex gap-0.5 bg-white/[0.03] rounded-lg p-[3px] overflow-x-auto no-scrollbar max-w-[calc(100vw-160px)] sm:max-w-none">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -181,14 +189,14 @@ export default function DashboardPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[7px] text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2 sm:px-3.5 py-1.5 rounded-[7px] text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
                   isActive
                     ? "bg-blue-500/12 text-white border border-blue-500/20 shadow-[0_0_12px_rgba(59,130,246,0.08)]"
                     : "text-slate-500 hover:text-slate-400 hover:bg-white/[0.04]"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
-                {tab.label}
+                <span className="hidden sm:inline">{tab.label}</span>
               </button>
             );
           })}
@@ -196,44 +204,61 @@ export default function DashboardPage() {
 
         {/* ALERTS */}
         {alertCount > 0 && (
-          <div className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 animate-pulse">
+          <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 animate-pulse">
             <AlertTriangle className="w-3 h-3" />
             {alertCount} alerts
           </div>
         )}
-        {alertCount === 0 && <div />}
+        {alertCount === 0 && <div className="hidden sm:block" />}
       </header>
 
       {/* DASHBOARD CORE LAYOUT: SIDEBAR + TABS CONTENT */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Mobile sidebar overlay backdrop */}
+        {sidebarOpen && (
+          <div
+            className="lg:hidden fixed inset-0 top-[52px] bg-black/50 z-30 backdrop-blur-sm"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* SIDEBAR INPUT CONTROLS */}
-        <Sidebar
-          projName={projName} setProjName={setProjName}
-          projClient={projClient} setProjClient={setProjClient}
-          voltage={voltage} setVoltage={setVoltage}
-          conductor={conductor} setConductor={setConductor}
-          resistance={resistance} setResistance={setResistance}
-          reactance={reactance} setReactance={setReactance}
-          pf={pf} setPf={setPf}
-          limit={limit} setLimit={setLimit}
-          xfmrMva={xfmrMva} setXfmrMva={setXfmrMva}
-          xfmrZ={xfmrZ} setXfmrZ={setXfmrZ}
-          ambientTemp={ambientTemp} setAmbientTemp={setAmbientTemp}
-          oltcTap={oltcTap} setOltcTap={setOltcTap}
-          statcomEnable={statcomEnable} setStatcomEnable={setStatcomEnable}
-          statcomBus={statcomBus} setStatcomBus={setStatcomBus}
-          statcomMvar={statcomMvar} setStatcomMvar={setStatcomMvar}
-          tariff={tariff} setTariff={setTariff}
-          loadFactor={loadFactor} setLoadFactor={setLoadFactor}
-          co2Factor={co2Factor} setCo2Factor={setCo2Factor}
-          statcomCost={statcomCost} setStatcomCost={setStatcomCost}
-          segments={segments} setSegments={setSegments}
-          onOptimize={handleOptimize}
-          onRunAnalysis={() => {}} // Calculations are automatic, but button callback is provided
-        />
+        <div
+          className={`
+            lg:relative lg:translate-x-0 lg:block
+            fixed top-[52px] left-0 bottom-0 z-40
+            transition-transform duration-300 ease-in-out
+            ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          `}
+        >
+          <Sidebar
+            projName={projName} setProjName={setProjName}
+            projClient={projClient} setProjClient={setProjClient}
+            voltage={voltage} setVoltage={setVoltage}
+            conductor={conductor} setConductor={setConductor}
+            resistance={resistance} setResistance={setResistance}
+            reactance={reactance} setReactance={setReactance}
+            pf={pf} setPf={setPf}
+            limit={limit} setLimit={setLimit}
+            xfmrMva={xfmrMva} setXfmrMva={setXfmrMva}
+            xfmrZ={xfmrZ} setXfmrZ={setXfmrZ}
+            ambientTemp={ambientTemp} setAmbientTemp={setAmbientTemp}
+            oltcTap={oltcTap} setOltcTap={setOltcTap}
+            statcomEnable={statcomEnable} setStatcomEnable={setStatcomEnable}
+            statcomBus={statcomBus} setStatcomBus={setStatcomBus}
+            statcomMvar={statcomMvar} setStatcomMvar={setStatcomMvar}
+            tariff={tariff} setTariff={setTariff}
+            loadFactor={loadFactor} setLoadFactor={setLoadFactor}
+            co2Factor={co2Factor} setCo2Factor={setCo2Factor}
+            statcomCost={statcomCost} setStatcomCost={setStatcomCost}
+            segments={segments} setSegments={setSegments}
+            onOptimize={handleOptimize}
+            onRunAnalysis={() => {}} // Calculations are automatic, but button callback is provided
+          />
+        </div>
 
         {/* MAIN TAB CONTENT */}
-        <main className="flex-1 overflow-y-auto no-scrollbar p-5">
+        <main className="flex-1 overflow-y-auto no-scrollbar p-3 sm:p-5">
           {activeTab === "analyzer" && <AnalyzerTab data={data} dataWithStatcom={dataWithStatcom} />}
           {activeTab === "transformer" && <TransformerTab data={data} />}
           {activeTab === "losses" && <LossesTab data={data} dataWithStatcom={dataWithStatcom} />}

@@ -40,8 +40,8 @@ export function ReportTab({ data }: { data: AnalysisData }) {
   }
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-300 max-w-4xl mx-auto">
-      <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-6">
+    <div className="space-y-4 animate-in fade-in duration-300 max-w-full lg:max-w-4xl mx-auto">
+      <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4 sm:p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-[13px] font-semibold flex items-center gap-2">
             📄 IEC 60038 Compliance Report

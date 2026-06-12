@@ -118,7 +118,7 @@ export function Sidebar({
   };
 
   return (
-    <aside className="w-[272px] min-w-[272px] h-full bg-[#0f1520] border-r border-white/[0.06] flex flex-col overflow-y-auto no-scrollbar">
+    <aside className="w-[280px] sm:w-[272px] min-w-[272px] h-full max-h-[calc(100vh-52px)] bg-[#0f1520] border-r border-white/[0.06] flex flex-col overflow-y-auto no-scrollbar">
       <div className="p-4 space-y-3.5 flex-1">
         {/* PROJECT */}
         <Section icon="📁" label="Project">

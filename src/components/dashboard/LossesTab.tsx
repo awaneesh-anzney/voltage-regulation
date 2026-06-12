@@ -23,7 +23,7 @@ export function LossesTab({ data, dataWithStatcom }: { data: AnalysisData; dataW
   return (
     <div className="space-y-4 animate-in fade-in duration-300">
       {/* Summary Cards */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { label: "Active Losses (I²R)", value: `${data.totalActiveLoss.toFixed(1)} kW`, color: "text-amber-400" },
           { label: "Reactive Losses (I²X)", value: `${data.totalReactiveLoss.toFixed(1)} kVAR`, color: "text-purple-400" },
@@ -38,11 +38,12 @@ export function LossesTab({ data, dataWithStatcom }: { data: AnalysisData; dataW
       </div>
 
       {/* Per-Segment Table */}
-      <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
+      <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-3 sm:p-5">
         <h3 className="text-[13px] font-semibold mb-4 flex items-center gap-2">
           📋 Per-Segment Loss Breakdown
         </h3>
-        <table className="w-full text-xs">
+        <div className="overflow-x-auto -mx-3 sm:-mx-0">
+        <table className="w-full text-xs min-w-[640px]">
           <thead>
             <tr className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
               {["Segment", "Distance", "Current (A)", "I²R Loss (kW)", "I²X Loss (kVAR)", "Annual Energy (MWh)", "Annual Cost ($)"].map((h) => (
@@ -69,12 +70,13 @@ export function LossesTab({ data, dataWithStatcom }: { data: AnalysisData; dataW
             })}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* STATCOM ROI */}
       <div className="bg-gradient-to-br from-emerald-500/[0.06] to-cyan-500/[0.06] border border-emerald-500/15 rounded-xl p-5">
         <h3 className="text-[13px] font-semibold text-emerald-400 mb-4 flex items-center gap-2">📈 STATCOM ROI Analysis</h3>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             { label: "STATCOM Investment", value: `$${statcomCostM.toFixed(1)}M`, color: "text-emerald-400" },
             { label: "Annual Savings", value: `$${(savedCost / 1000).toFixed(0)}k/yr`, color: "text-emerald-400" },
@@ -92,7 +94,7 @@ export function LossesTab({ data, dataWithStatcom }: { data: AnalysisData; dataW
       {/* Carbon Impact */}
       <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
         <h3 className="text-[13px] font-semibold mb-4">🌿 Carbon Impact</h3>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { value: annualEnergyLoss.toFixed(0), label: "MWh lost / year", color: "text-slate-100" },
             { value: annualCO2.toFixed(0), label: "Tonnes CO₂ / year", color: "text-amber-400" },

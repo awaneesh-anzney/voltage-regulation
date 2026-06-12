@@ -89,7 +89,7 @@ export function AIInsightsTab({ data, optimalConfig }: { data: AnalysisData; opt
         <h3 className="text-sm font-semibold text-purple-400 mb-4 flex items-center gap-2">🧠 AI Optimizer — Best Configuration</h3>
 
         {/* Config cards */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           {[
             { label: "OLTC TAP", value: `${optimalConfig.tap >= 0 ? "+" : ""}${optimalConfig.tap.toFixed(1)}%` },
             { label: "STATCOM", value: optimalConfig.statcomMvar > 0 ? `+${optimalConfig.statcomMvar} MVAR at S${optimalConfig.statcomBus + 1}` : "Not needed" },
@@ -103,7 +103,7 @@ export function AIInsightsTab({ data, optimalConfig }: { data: AnalysisData; opt
         </div>
 
         {/* Before/After */}
-        <div className="grid grid-cols-[1fr_40px_1fr] items-stretch">
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_40px_1fr] items-stretch gap-3 sm:gap-0">
           <div className="bg-white/[0.02] rounded-lg p-4 border border-white/[0.06]">
             <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-3">Current</div>
             <div className="flex justify-between text-xs text-slate-400 mb-1.5">
@@ -115,7 +115,8 @@ export function AIInsightsTab({ data, optimalConfig }: { data: AnalysisData; opt
               <span className="font-mono font-semibold text-slate-100">{data.totalActiveLoss.toFixed(1)} kW</span>
             </div>
           </div>
-          <div className="flex items-center justify-center text-slate-600">→</div>
+          <div className="hidden sm:flex items-center justify-center text-slate-600">→</div>
+          <div className="flex sm:hidden items-center justify-center text-slate-600 py-1">↓</div>
           <div className="bg-emerald-500/[0.06] rounded-lg p-4 border border-emerald-500/20">
             <div className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider mb-3">Optimized ({improvement}% better)</div>
             <div className="flex justify-between text-xs text-slate-400 mb-1.5">

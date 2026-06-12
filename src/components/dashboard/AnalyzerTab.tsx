@@ -147,7 +147,7 @@ export function AnalyzerTab({ data, dataWithStatcom }: { data: AnalysisData; dat
   return (
     <div className="space-y-4 animate-in fade-in duration-300">
       {/* KPI Grid */}
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <KpiCard label="Peak Regulation" value={`${peakReg.toFixed(2)}%`} sub={`Limit: ${limit}%`} status={peakReg > limit ? "danger" : peakReg > limit * 0.8 ? "warn" : "ok"} />
         <KpiCard label="Total Length" value={`${totalLen.toFixed(0)} km`} sub={`${results.length} segments`} />
         <KpiCard label="Receiving Voltage" value={`${VR.toFixed(1)} kV`} sub={`Send: ${Vs.toFixed(1)} kV`} status={peakReg > limit ? "danger" : "ok"} />
@@ -156,33 +156,37 @@ export function AnalyzerTab({ data, dataWithStatcom }: { data: AnalysisData; dat
       </div>
 
       {/* SLD + Voltage Profile */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-3 sm:p-5 overflow-x-auto">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[13px] font-semibold flex items-center gap-2">
               <span className="text-slate-500 text-base">⚡</span> Single-Line Diagram
             </h3>
-            <span className="text-[11px] text-slate-500">Interactive · Hover for details</span>
+            <span className="text-[11px] text-slate-500 hidden sm:inline">Interactive · Hover for details</span>
           </div>
-          <SLDDiagram data={data} />
+          <div className="min-w-[480px]">
+            <SLDDiagram data={data} />
+          </div>
         </div>
-        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
+        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-3 sm:p-5 overflow-x-auto">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[13px] font-semibold flex items-center gap-2">
               <span className="text-slate-500 text-base">📈</span> Voltage Profile
             </h3>
             <span className="text-[11px] text-slate-500">Limit: {limit}%</span>
           </div>
-          <VoltageProfileChart data={data} />
+          <div className="min-w-[400px]">
+            <VoltageProfileChart data={data} />
+          </div>
         </div>
       </div>
 
       {/* STATCOM Before/After */}
-      <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
+      <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-3 sm:p-5">
         <h3 className="text-[13px] font-semibold mb-4 flex items-center gap-2">
           <span className="text-purple-400">◆</span> STATCOM Impact Comparison
         </h3>
-        <div className="grid grid-cols-[1fr_40px_1fr] items-stretch">
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_40px_1fr] items-stretch gap-3 sm:gap-0">
           {/* Before */}
           <div className="bg-white/[0.02] rounded-lg p-4 border border-white/[0.06]">
             <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-3">Without STATCOM</div>
@@ -201,7 +205,8 @@ export function AnalyzerTab({ data, dataWithStatcom }: { data: AnalysisData; dat
             </div>
           </div>
           {/* Arrow */}
-          <div className="flex items-center justify-center text-slate-600">→</div>
+          <div className="hidden sm:flex items-center justify-center text-slate-600">→</div>
+          <div className="flex sm:hidden items-center justify-center text-slate-600 py-1">↓</div>
           {/* After */}
           <div className="bg-emerald-500/[0.06] rounded-lg p-4 border border-emerald-500/20">
             <div className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider mb-3">With STATCOM (+{dataWithStatcom.statcomMvar} MVAR at {dataWithStatcom.results[parseInt(dataWithStatcom.statcomBus)]?.label})</div>
@@ -223,11 +228,12 @@ export function AnalyzerTab({ data, dataWithStatcom }: { data: AnalysisData; dat
       </div>
 
       {/* Segment Table */}
-      <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
+      <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-3 sm:p-5">
         <h3 className="text-[13px] font-semibold mb-4 flex items-center gap-2">
           <span className="text-slate-500">📋</span> Segment-by-Segment Results
         </h3>
-        <table className="w-full text-xs">
+        <div className="overflow-x-auto -mx-3 sm:-mx-0">
+        <table className="w-full text-xs min-w-[640px]">
           <thead>
             <tr className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
               <th className="text-left px-3 py-2 border-b border-white/[0.06] bg-white/[0.02]">Seg</th>
@@ -255,6 +261,7 @@ export function AnalyzerTab({ data, dataWithStatcom }: { data: AnalysisData; dat
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

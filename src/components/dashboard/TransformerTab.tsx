@@ -70,7 +70,7 @@ export function TransformerTab({ data }: { data: AnalysisData }) {
   return (
     <div className="space-y-4 animate-in fade-in duration-300">
       {/* KPIs */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { label: "Rated Capacity", value: `${ratedMVA} MVA`, sub: "Nameplate", color: "text-slate-100" },
           { label: "Current Loading", value: `${loadingPct.toFixed(1)}%`, sub: loadStatus, color: loadColor },
@@ -85,7 +85,7 @@ export function TransformerTab({ data }: { data: AnalysisData }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Gauge */}
         <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
           <h3 className="text-[13px] font-semibold mb-4">🔋 Loading Gauge</h3>
@@ -134,7 +134,8 @@ export function TransformerTab({ data }: { data: AnalysisData }) {
           {/* Tap Sensitivity Table */}
           <div>
             <div className="text-[11px] font-semibold text-slate-400 mb-2">Tap Position Sensitivity</div>
-            <table className="w-full text-[11px]">
+            <div className="overflow-x-auto -mx-3 sm:-mx-0">
+            <table className="w-full text-[11px] min-w-[400px]">
               <thead>
                 <tr className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">
                   <th className="text-left px-2 py-1.5 border-b border-white/[0.06]">Tap</th>
@@ -158,6 +159,7 @@ export function TransformerTab({ data }: { data: AnalysisData }) {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       </div>

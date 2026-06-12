@@ -56,7 +56,7 @@ export function ContingencyTab({ data }: { data: AnalysisData }) {
           <h3 className="text-[13px] font-semibold flex items-center gap-2">⚠️ N-1 Contingency Scenarios</h3>
           <span className="text-[11px] text-slate-500">What if one segment trips?</span>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {contingencyCards.map((card) => {
             const colors = {
               ok: { text: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/15" },
@@ -81,9 +81,10 @@ export function ContingencyTab({ data }: { data: AnalysisData }) {
       </div>
 
       {/* Conductor Upgrade Scenarios */}
-      <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
+      <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-3 sm:p-5">
         <h3 className="text-[13px] font-semibold mb-4 flex items-center gap-2">⬆️ Conductor Upgrade Scenarios</h3>
-        <table className="w-full text-xs">
+        <div className="overflow-x-auto -mx-3 sm:-mx-0">
+        <table className="w-full text-xs min-w-[500px]">
           <thead>
             <tr className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
               <th className="text-left px-3 py-2 border-b border-white/[0.06] bg-white/[0.02]">Upgrade Option</th>
@@ -107,6 +108,7 @@ export function ContingencyTab({ data }: { data: AnalysisData }) {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );
