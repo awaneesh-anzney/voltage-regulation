@@ -134,7 +134,7 @@ export function TransformerTab({ data }: { data: AnalysisData }) {
           {/* Tap Sensitivity Table */}
           <div>
             <div className="text-[11px] font-semibold text-slate-400 mb-2">Tap Position Sensitivity</div>
-            <div className="overflow-x-auto -mx-3 sm:-mx-0">
+            <div className="overflow-x-auto green-scrollbar -mx-3 sm:-mx-0">
             <table className="w-full text-[11px] min-w-[400px]">
               <thead>
                 <tr className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider">

@@ -157,7 +157,7 @@ export function AnalyzerTab({ data, dataWithStatcom }: { data: AnalysisData; dat
 
       {/* SLD + Voltage Profile */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-3 sm:p-5 overflow-x-auto">
+        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-3 sm:p-5 overflow-x-auto green-scrollbar">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[13px] font-semibold flex items-center gap-2">
               <span className="text-slate-500 text-base">⚡</span> Single-Line Diagram
@@ -168,7 +168,7 @@ export function AnalyzerTab({ data, dataWithStatcom }: { data: AnalysisData; dat
             <SLDDiagram data={data} />
           </div>
         </div>
-        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-3 sm:p-5 overflow-x-auto">
+        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-3 sm:p-5 overflow-x-auto green-scrollbar">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-[13px] font-semibold flex items-center gap-2">
               <span className="text-slate-500 text-base">📈</span> Voltage Profile
@@ -232,7 +232,7 @@ export function AnalyzerTab({ data, dataWithStatcom }: { data: AnalysisData; dat
         <h3 className="text-[13px] font-semibold mb-4 flex items-center gap-2">
           <span className="text-slate-500">📋</span> Segment-by-Segment Results
         </h3>
-        <div className="overflow-x-auto -mx-3 sm:-mx-0">
+        <div className="overflow-x-auto green-scrollbar -mx-3 sm:-mx-0">
         <table className="w-full text-xs min-w-[640px]">
           <thead>
             <tr className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">

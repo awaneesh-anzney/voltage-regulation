@@ -189,11 +189,10 @@ export default function DashboardPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-2 sm:px-3.5 py-1.5 rounded-[7px] text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
-                  isActive
+                className={`flex items-center gap-1.5 px-2 sm:px-3.5 py-1.5 rounded-[7px] text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${isActive
                     ? "bg-blue-500/12 text-white border border-blue-500/20 shadow-[0_0_12px_rgba(59,130,246,0.08)]"
                     : "text-slate-500 hover:text-slate-400 hover:bg-white/[0.04]"
-                }`}
+                  }`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">{tab.label}</span>
@@ -213,7 +212,7 @@ export default function DashboardPage() {
       </header>
 
       {/* DASHBOARD CORE LAYOUT: SIDEBAR + TABS CONTENT */}
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 min-h-0 overflow-hidden relative">
         {/* Mobile sidebar overlay backdrop */}
         {sidebarOpen && (
           <div
@@ -225,8 +224,8 @@ export default function DashboardPage() {
         {/* SIDEBAR INPUT CONTROLS */}
         <div
           className={`
-            lg:relative lg:translate-x-0 lg:block
             fixed top-[52px] left-0 bottom-0 z-40
+            lg:translate-x-0
             transition-transform duration-300 ease-in-out
             ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
           `}
@@ -253,12 +252,12 @@ export default function DashboardPage() {
             statcomCost={statcomCost} setStatcomCost={setStatcomCost}
             segments={segments} setSegments={setSegments}
             onOptimize={handleOptimize}
-            onRunAnalysis={() => {}} // Calculations are automatic, but button callback is provided
+            onRunAnalysis={() => { }} // Calculations are automatic, but button callback is provided
           />
         </div>
 
         {/* MAIN TAB CONTENT */}
-        <main className="flex-1 overflow-y-auto no-scrollbar p-3 sm:p-5">
+        <main className="flex-1 overflow-y-auto no-scrollbar p-3 sm:p-5 lg:ml-[272px]">
           {activeTab === "analyzer" && <AnalyzerTab data={data} dataWithStatcom={dataWithStatcom} />}
           {activeTab === "transformer" && <TransformerTab data={data} />}
           {activeTab === "losses" && <LossesTab data={data} dataWithStatcom={dataWithStatcom} />}

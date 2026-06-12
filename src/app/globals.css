@@ -157,3 +157,20 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* Custom slim green scrollbar */
+.green-scrollbar::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+.green-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.green-scrollbar::-webkit-scrollbar-thumb {
+  background: #10b981;
+  border-radius: 4px;
+}
+.green-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #10b981 transparent;
+}

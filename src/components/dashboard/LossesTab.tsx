@@ -42,7 +42,7 @@ export function LossesTab({ data, dataWithStatcom }: { data: AnalysisData; dataW
         <h3 className="text-[13px] font-semibold mb-4 flex items-center gap-2">
           📋 Per-Segment Loss Breakdown
         </h3>
-        <div className="overflow-x-auto -mx-3 sm:-mx-0">
+        <div className="overflow-x-auto green-scrollbar -mx-3 sm:-mx-0">
         <table className="w-full text-xs min-w-[640px]">
           <thead>
             <tr className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">

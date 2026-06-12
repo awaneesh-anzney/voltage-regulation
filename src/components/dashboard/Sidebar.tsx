@@ -118,8 +118,8 @@ export function Sidebar({
   };
 
   return (
-    <aside className="w-[280px] sm:w-[272px] min-w-[272px] h-full max-h-[calc(100vh-52px)] bg-[#0f1520] border-r border-white/[0.06] flex flex-col overflow-y-auto no-scrollbar">
-      <div className="p-4 space-y-3.5 flex-1">
+    <aside className="w-[280px] sm:w-[272px] min-w-[272px] h-full bg-[#0f1520] border-r border-white/[0.06] flex flex-col">
+      <div className="p-4 space-y-3.5 flex-1 min-h-0 overflow-y-auto no-scrollbar">
         {/* PROJECT */}
         <Section icon="📁" label="Project">
           <Field label="Project name">
@@ -262,7 +262,7 @@ export function Sidebar({
       </div>
 
       {/* ACTION BUTTONS — sticky at bottom */}
-      <div className="p-4 pt-2 border-t border-white/[0.06] bg-[#0f1520] space-y-1.5">
+      <div className="p-4 pt-2 border-t border-white/[0.06] bg-[#0f1520] space-y-1.5 shrink-0">
         <button
           onClick={onRunAnalysis}
           className="w-full flex items-center justify-center gap-2 text-[13px] font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg py-2.5 hover:from-blue-600 hover:to-blue-700 shadow-[0_2px_10px_rgba(59,130,246,0.25)] hover:shadow-[0_4px_16px_rgba(59,130,246,0.35)] transition-all cursor-pointer hover:-translate-y-px active:translate-y-0"

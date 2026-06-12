@@ -83,7 +83,7 @@ export function ContingencyTab({ data }: { data: AnalysisData }) {
       {/* Conductor Upgrade Scenarios */}
       <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-3 sm:p-5">
         <h3 className="text-[13px] font-semibold mb-4 flex items-center gap-2">⬆️ Conductor Upgrade Scenarios</h3>
-        <div className="overflow-x-auto -mx-3 sm:-mx-0">
+        <div className="overflow-x-auto green-scrollbar -mx-3 sm:-mx-0">
         <table className="w-full text-xs min-w-[500px]">
           <thead>
             <tr className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
