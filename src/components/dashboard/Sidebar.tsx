@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, X, Play, Sparkles } from "lucide-react";
+import { Plus, X, Play, Sparkles, Bookmark } from "lucide-react";
 
 export interface Segment {
   id: number;
@@ -52,6 +52,7 @@ interface SidebarProps {
   setSegments: React.Dispatch<React.SetStateAction<Segment[]>>;
   onRunAnalysis?: () => void;
   onOptimize?: () => void;
+  onSaveScenario?: () => void;
 }
 
 const VOLTAGES = ["11", "33", "66", "132", "220", "400", "765"];
@@ -94,6 +95,7 @@ export function Sidebar({
   segments, setSegments,
   onRunAnalysis,
   onOptimize,
+  onSaveScenario,
 }: SidebarProps) {
 
   const handleConductorChange = (val: string) => {
@@ -269,12 +271,20 @@ export function Sidebar({
         >
           <Play className="w-4 h-4" /> Run Analysis
         </button>
-        <button
-          onClick={onOptimize}
-          className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-purple-500 to-violet-600 rounded-lg py-2 hover:from-purple-600 hover:to-violet-700 shadow-[0_2px_10px_rgba(167,139,250,0.2)] transition-all cursor-pointer hover:-translate-y-px"
-        >
-          <Sparkles className="w-3.5 h-3.5" /> AI Optimize
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={onOptimize}
+            className="flex items-center justify-center gap-1 text-[11px] font-semibold text-white bg-gradient-to-r from-purple-500 to-violet-600 rounded-lg py-2 hover:from-purple-600 hover:to-violet-700 shadow-[0_2px_8px_rgba(167,139,250,0.15)] transition-all cursor-pointer hover:-translate-y-px"
+          >
+            <Sparkles className="w-3.5 h-3.5" /> AI Optimize
+          </button>
+          <button
+            onClick={onSaveScenario}
+            className="flex items-center justify-center gap-1 text-[11px] font-semibold text-slate-300 hover:text-white bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] hover:border-white/15 rounded-lg py-2 transition-all cursor-pointer hover:-translate-y-px"
+          >
+            <Bookmark className="w-3.5 h-3.5 text-blue-400" /> Save Scenario
+          </button>
+        </div>
       </div>
     </aside>
   );

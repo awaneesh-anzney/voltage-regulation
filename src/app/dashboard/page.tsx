@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Zap, BarChart3, DollarSign, Shield, Sparkles, FileText,
-  AlertTriangle, Menu, X as XIcon
+  AlertTriangle, Menu, X as XIcon, History
 } from "lucide-react";
 import { getDemoAnalysisData, CONDUCTORS, calculateRegulation, findOptimalTap, runOptimizer } from "@/lib/gridCalculations";
 import type { AnalysisData, OptimalConfig, SegmentResult } from "@/lib/gridCalculations";
@@ -14,6 +14,33 @@ import { ContingencyTab } from "@/components/dashboard/ContingencyTab";
 import { AIInsightsTab } from "@/components/dashboard/AIInsightsTab";
 import { ReportTab } from "@/components/dashboard/ReportTab";
 import { Sidebar, Segment } from "@/components/dashboard/Sidebar";
+import { HistoryTab } from "@/components/dashboard/HistoryTab";
+
+export interface HistoryItem {
+  id: string;
+  timestamp: string;
+  name: string;
+  client: string;
+  voltage: string;
+  conductor: string;
+  resistance: string;
+  reactance: string;
+  pf: string;
+  limit: string;
+  xfmrMva: string;
+  xfmrZ: string;
+  oltcTap: number;
+  statcomEnable: string;
+  statcomBus: string;
+  statcomMvar: number;
+  tariff: string;
+  loadFactor: string;
+  co2Factor: string;
+  statcomCost: string;
+  segments: Segment[];
+  peakReg: number;
+  totalLoss: number;
+}
 
 const TABS = [
   { id: "analyzer", label: "Analyzer", icon: BarChart3 },
@@ -22,6 +49,7 @@ const TABS = [
   { id: "contingency", label: "N-1 Contingency", icon: Shield },
   { id: "ai", label: "AI Insights", icon: Sparkles },
   { id: "report", label: "Report", icon: FileText },
+  { id: "history", label: "History", icon: History },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -56,6 +84,97 @@ export default function DashboardPage() {
     { id: 2, km: "8", mva: "12", df: "1.0" },
     { id: 3, km: "5", mva: "6", df: "1.0" },
   ]);
+
+  // History & Toast states
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("gridintel_history");
+    if (saved) {
+      try {
+        setHistory(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse history", e);
+      }
+    }
+  }, []);
+
+  const triggerToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleSaveScenario = () => {
+    const newScenario: HistoryItem = {
+      id: Date.now().toString(),
+      timestamp: new Date().toLocaleString(),
+      name: projName || "Untitled Scenario",
+      client: projClient || "Generic Client",
+      voltage,
+      conductor,
+      resistance,
+      reactance,
+      pf,
+      limit,
+      xfmrMva,
+      xfmrZ,
+      oltcTap,
+      statcomEnable,
+      statcomBus,
+      statcomMvar,
+      tariff,
+      loadFactor,
+      co2Factor,
+      statcomCost,
+      segments,
+      peakReg: data.peakReg,
+      totalLoss: data.totalActiveLoss,
+    };
+
+    const updated = [newScenario, ...history];
+    setHistory(updated);
+    localStorage.setItem("gridintel_history", JSON.stringify(updated));
+    triggerToast(`Scenario "${newScenario.name}" saved to history!`);
+  };
+
+  const handleRestoreScenario = (item: HistoryItem) => {
+    setProjName(item.name);
+    setProjClient(item.client);
+    setVoltage(item.voltage);
+    setConductor(item.conductor);
+    setResistance(item.resistance);
+    setReactance(item.reactance);
+    setPf(item.pf);
+    setLimit(item.limit);
+    setXfmrMva(item.xfmrMva);
+    setXfmrZ(item.xfmrZ);
+    setOltcTap(item.oltcTap);
+    setStatcomEnable(item.statcomEnable);
+    setStatcomBus(item.statcomBus);
+    setStatcomMvar(item.statcomMvar);
+    setTariff(item.tariff);
+    setLoadFactor(item.loadFactor);
+    setCo2Factor(item.co2Factor);
+    setStatcomCost(item.statcomCost);
+    setSegments(item.segments);
+    triggerToast(`Restored scenario: ${item.name}`);
+  };
+
+  const handleDeleteScenario = (id: string) => {
+    const updated = history.filter((h) => h.id !== id);
+    setHistory(updated);
+    localStorage.setItem("gridintel_history", JSON.stringify(updated));
+    triggerToast("Scenario deleted.");
+  };
+
+  const handleClearHistory = () => {
+    if (window.confirm("Are you sure you want to clear all history?")) {
+      setHistory([]);
+      localStorage.removeItem("gridintel_history");
+      triggerToast("All history cleared.");
+    }
+  };
 
   // Format segments for engine calculations
   const parsedSegs = useMemo(() => {
@@ -253,6 +372,7 @@ export default function DashboardPage() {
             segments={segments} setSegments={setSegments}
             onOptimize={handleOptimize}
             onRunAnalysis={() => { }} // Calculations are automatic, but button callback is provided
+            onSaveScenario={handleSaveScenario}
           />
         </div>
 
@@ -264,8 +384,26 @@ export default function DashboardPage() {
           {activeTab === "contingency" && <ContingencyTab data={data} />}
           {activeTab === "ai" && <AIInsightsTab data={data} optimalConfig={optimalConfig} />}
           {activeTab === "report" && <ReportTab data={data} />}
+          {activeTab === "history" && (
+            <HistoryTab
+              history={history}
+              onRestore={handleRestoreScenario}
+              onDelete={handleDeleteScenario}
+              onClearAll={handleClearHistory}
+              currentActiveReg={data.peakReg}
+              currentActiveLoss={data.totalActiveLoss}
+            />
+          )}
         </main>
       </div>
+
+      {/* CUSTOM FLOATING TOAST NOTIFICATION */}
+      {toast && (
+        <div className="fixed bottom-4 right-4 z-50 bg-[#162235] border border-blue-500/30 text-blue-200 px-4 py-2.5 rounded-lg shadow-xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-bottom-5 duration-200">
+          <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
