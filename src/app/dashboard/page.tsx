@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import {
   Zap, BarChart3, DollarSign, Shield, Sparkles, FileText,
-  AlertTriangle, Menu, X as XIcon, History
+  AlertTriangle, Menu, X as XIcon, History, Network, ShieldAlert
 } from "lucide-react";
 import { getDemoAnalysisData, CONDUCTORS, calculateRegulation, findOptimalTap, runOptimizer } from "@/lib/gridCalculations";
 import type { AnalysisData, OptimalConfig, SegmentResult } from "@/lib/gridCalculations";
@@ -15,6 +15,10 @@ import { AIInsightsTab } from "@/components/dashboard/AIInsightsTab";
 import { ReportTab } from "@/components/dashboard/ReportTab";
 import { Sidebar, Segment } from "@/components/dashboard/Sidebar";
 import { HistoryTab } from "@/components/dashboard/HistoryTab";
+import { LoadFlowAnalyzer } from "@/components/calculator/LoadFlowAnalyzer";
+import { FaultAnalyzer } from "@/components/calculator/FaultAnalyzer";
+import { PrintableReport } from "@/components/calculator/PrintableReport";
+import { CalculatorProvider } from "@/context/CalculatorContext";
 
 export interface HistoryItem {
   id: string;
@@ -47,6 +51,8 @@ const TABS = [
   { id: "transformer", label: "Transformer", icon: Zap },
   { id: "losses", label: "Losses & ROI", icon: DollarSign },
   { id: "contingency", label: "N-1 Contingency", icon: Shield },
+  { id: "loadflow", label: "Meshed Load Flow", icon: Network },
+  { id: "fault", label: "Fault Analysis", icon: ShieldAlert },
   { id: "ai", label: "AI Insights", icon: Sparkles },
   { id: "report", label: "Report", icon: FileText },
   { id: "history", label: "History", icon: History },
@@ -54,7 +60,7 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]["id"];
 
-export default function DashboardPage() {
+function DashboardContent() {
   const [activeTab, setActiveTab] = useState<TabId>("analyzer");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -382,6 +388,30 @@ export default function DashboardPage() {
           {activeTab === "transformer" && <TransformerTab data={data} />}
           {activeTab === "losses" && <LossesTab data={data} dataWithStatcom={dataWithStatcom} />}
           {activeTab === "contingency" && <ContingencyTab data={data} />}
+          {activeTab === "loadflow" && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0f1520]/80 p-4 border border-white/[0.06] rounded-xl shadow-lg">
+                <div>
+                  <h2 className="text-base font-bold text-white uppercase tracking-wider">Newton-Raphson Load Flow</h2>
+                  <p className="text-xs text-slate-400 mt-1">Iterative load flow calculations on meshed power distribution grids.</p>
+                </div>
+                <PrintableReport />
+              </div>
+              <LoadFlowAnalyzer />
+            </div>
+          )}
+          {activeTab === "fault" && (
+            <div className="space-y-6 max-w-7xl mx-auto">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0f1520]/80 p-4 border border-white/[0.06] rounded-xl shadow-lg">
+                <div>
+                  <h2 className="text-base font-bold text-white uppercase tracking-wider">Short-Circuit Fault Analysis</h2>
+                  <p className="text-xs text-slate-400 mt-1">Compute short-circuit levels and sequence impedance values in compliance with IEC 60909.</p>
+                </div>
+                <PrintableReport />
+              </div>
+              <FaultAnalyzer />
+            </div>
+          )}
           {activeTab === "ai" && <AIInsightsTab data={data} optimalConfig={optimalConfig} />}
           {activeTab === "report" && <ReportTab data={data} />}
           {activeTab === "history" && (
@@ -397,7 +427,7 @@ export default function DashboardPage() {
         </main>
       </div>
 
-      {/* CUSTOM FLOATING TOAST NOTIFICATION */}
+
       {toast && (
         <div className="fixed bottom-4 right-4 z-50 bg-[#162235] border border-blue-500/30 text-blue-200 px-4 py-2.5 rounded-lg shadow-xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-bottom-5 duration-200">
           <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
@@ -405,5 +435,13 @@ export default function DashboardPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <CalculatorProvider>
+      <DashboardContent />
+    </CalculatorProvider>
   );
 }
