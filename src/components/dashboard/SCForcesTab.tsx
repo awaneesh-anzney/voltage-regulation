@@ -64,7 +64,7 @@ export function SCForcesTab({ data }: SCForcesTabProps) {
       </div>
 
       {/* Sub-navigation */}
-      <div className="flex gap-1 bg-[#111827] p-1 rounded-xl border border-white/[0.06] w-fit">
+      <div className="flex gap-1 bg-[#111827] p-1 rounded-xl border border-white/[0.06] w-full sm:w-fit overflow-x-auto no-scrollbar">
         {[
           { id: "params", label: "Parameters", icon: Activity },
           { id: "results", label: "Results", icon: Beaker },
@@ -74,7 +74,7 @@ export function SCForcesTab({ data }: SCForcesTabProps) {
           <button
             key={t.id}
             onClick={() => setSubTab(t.id as any)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${
+            className={`flex items-center whitespace-nowrap shrink-0 gap-1.5 px-4 py-2 rounded-lg text-[13px] font-medium transition-all ${
               subTab === t.id
                 ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
                 : "text-slate-400 hover:text-white hover:bg-white/[0.04] border border-transparent"
@@ -164,7 +164,7 @@ export function SCForcesTab({ data }: SCForcesTabProps) {
             
             <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
               <h3 className="text-[14px] font-semibold text-white mb-4">Clearance & Clash Check</h3>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col md:flex-row items-stretch gap-4">
                 <div className="flex-1 bg-[#0a0f18] rounded-lg p-4 border border-emerald-500/20">
                   <div className="text-emerald-400 text-sm font-semibold mb-1">Clearance Check</div>
                   <div className="text-slate-400 text-xs">Minimum phase-to-phase clearance maintained under max swing angle.</div>
