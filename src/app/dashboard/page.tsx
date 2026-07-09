@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import {
   Zap, BarChart3, DollarSign, Shield, Sparkles, FileText,
-  AlertTriangle, Menu, X as XIcon, History, Network, ShieldAlert
+  AlertTriangle, Menu, X as XIcon, History, Network, ShieldAlert, Activity
 } from "lucide-react";
 import { getDemoAnalysisData, CONDUCTORS, calculateRegulation, findOptimalTap, runOptimizer } from "@/lib/gridCalculations";
 import type { AnalysisData, OptimalConfig, SegmentResult } from "@/lib/gridCalculations";
@@ -15,6 +15,7 @@ import { AIInsightsTab } from "@/components/dashboard/AIInsightsTab";
 import { ReportTab } from "@/components/dashboard/ReportTab";
 import { Sidebar, Segment } from "@/components/dashboard/Sidebar";
 import { HistoryTab } from "@/components/dashboard/HistoryTab";
+import { SCForcesTab } from "@/components/dashboard/SCForcesTab";
 import { LoadFlowAnalyzer } from "@/components/calculator/LoadFlowAnalyzer";
 import { FaultAnalyzer } from "@/components/calculator/FaultAnalyzer";
 import { PrintableReport } from "@/components/calculator/PrintableReport";
@@ -53,6 +54,7 @@ const TABS = [
   { id: "contingency", label: "N-1 Contingency", icon: Shield },
   { id: "loadflow", label: "Meshed Load Flow", icon: Network },
   { id: "fault", label: "Fault Analysis", icon: ShieldAlert },
+  { id: "scforces", label: "SC Forces", icon: Activity },
   { id: "ai", label: "AI Insights", icon: Sparkles },
   { id: "report", label: "Report", icon: FileText },
   { id: "history", label: "History", icon: History },
@@ -413,6 +415,7 @@ function DashboardContent() {
             </div>
           )}
           {activeTab === "ai" && <AIInsightsTab data={data} optimalConfig={optimalConfig} />}
+          {activeTab === "scforces" && <SCForcesTab data={data} />}
           {activeTab === "report" && <ReportTab data={data} />}
           {activeTab === "history" && (
             <HistoryTab
