@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { SmartNumberInput } from '@/components/ui/SmartNumberInput';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -138,49 +139,41 @@ export function LoadFlowAnalyzer() {
                       </select>
                     </td>
                     <td className="py-2 px-2 flex items-center gap-1">
-                      <input
-                        type="number"
-                        step="0.01"
+                      <SmartNumberInput
+                        step={0.01}
                         value={bus.v}
                         disabled={bus.type === 'PQ'}
-                        onChange={(e) => handleUpdateBus(bus.id, 'v', parseFloat(e.target.value) || 0)}
+                        onChange={(v) => handleUpdateBus(bus.id, 'v', v)}
                         className="h-7 w-16 bg-slate-900/50 border border-slate-800/80 rounded px-2 text-xs text-white focus:border-blue-500/50 focus:outline-none transition-all disabled:opacity-50"
-                        placeholder="V p.u."
                       />
                       {bus.type === 'Slack' && <span className="text-slate-500">0°</span>}
                     </td>
                     <td className="py-2 px-2">
-                      <input
-                        type="number"
+                      <SmartNumberInput
                         value={bus.pGen}
                         disabled={bus.type === 'PQ'}
-                        onChange={(e) => handleUpdateBus(bus.id, 'pGen', parseFloat(e.target.value) || 0)}
+                        onChange={(v) => handleUpdateBus(bus.id, 'pGen', v)}
                         className="h-7 w-16 bg-slate-900/50 border border-slate-800/80 rounded px-2 text-xs text-white focus:border-blue-500/50 focus:outline-none transition-all disabled:opacity-50"
                       />
                     </td>
                     <td className="py-2 px-2">
                       <div className="flex gap-1">
-                        <input
-                          type="number"
+                        <SmartNumberInput
                           value={bus.pLoad}
-                          onChange={(e) => handleUpdateBus(bus.id, 'pLoad', parseFloat(e.target.value) || 0)}
+                          onChange={(v) => handleUpdateBus(bus.id, 'pLoad', v)}
                           className="h-7 w-16 bg-slate-900/50 border border-slate-800/80 rounded px-2 text-xs text-white focus:border-blue-500/50 focus:outline-none transition-all"
-                          placeholder="P Load"
                         />
-                        <input
-                          type="number"
+                        <SmartNumberInput
                           value={bus.qLoad}
-                          onChange={(e) => handleUpdateBus(bus.id, 'qLoad', parseFloat(e.target.value) || 0)}
+                          onChange={(v) => handleUpdateBus(bus.id, 'qLoad', v)}
                           className="h-7 w-16 bg-slate-900/50 border border-slate-800/80 rounded px-2 text-xs text-white focus:border-blue-500/50 focus:outline-none transition-all"
-                          placeholder="Q Load"
                         />
                       </div>
                     </td>
                     <td className="py-2 px-2">
-                      <input
-                        type="number"
+                      <SmartNumberInput
                         value={bus.baseKv}
-                        onChange={(e) => handleUpdateBus(bus.id, 'baseKv', parseFloat(e.target.value) || 0)}
+                        onChange={(v) => handleUpdateBus(bus.id, 'baseKv', v)}
                         className="h-7 w-16 bg-slate-900/50 border border-slate-800/80 rounded px-2 text-xs text-white focus:border-blue-500/50 focus:outline-none transition-all"
                       />
                     </td>
@@ -210,30 +203,30 @@ export function LoadFlowAnalyzer() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">System MVA Base</label>
-                <input
-                  type="number"
+                <SmartNumberInput
                   value={baseMva}
-                  onChange={(e) => setBaseMva(parseFloat(e.target.value) || 100)}
+                  onChange={(v) => setBaseMva(v)}
+                  fallback={100}
                   className="w-full h-[38px] bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 text-[13px] text-white focus:outline-none focus:border-blue-500/50 transition-all font-mono"
                 />
               </div>
               <div className="space-y-2">
                 <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Convergence Tol</label>
-                <input
-                  type="number"
-                  step="0.00001"
+                <SmartNumberInput
+                  step={0.00001}
                   value={tolerance}
-                  onChange={(e) => setTolerance(parseFloat(e.target.value) || 0.0001)}
+                  onChange={(v) => setTolerance(v)}
+                  fallback={0.0001}
                   className="w-full h-[38px] bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 text-[13px] text-white focus:outline-none focus:border-blue-500/50 transition-all font-mono"
                 />
               </div>
             </div>
             <div className="space-y-2">
               <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Max Iterations</label>
-              <input
-                type="number"
+              <SmartNumberInput
                 value={maxIter}
-                onChange={(e) => setMaxIter(parseInt(e.target.value) || 20)}
+                onChange={(v) => setMaxIter(Math.round(v))}
+                fallback={20}
                 className="w-full h-[38px] bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 text-[13px] text-white focus:outline-none focus:border-blue-500/50 transition-all font-mono"
               />
             </div>
@@ -302,29 +295,26 @@ export function LoadFlowAnalyzer() {
                       </select>
                     </td>
                     <td className="py-2 px-2">
-                      <input
-                        type="number"
-                        step="0.001"
+                      <SmartNumberInput
+                        step={0.001}
                         value={br.r}
-                        onChange={(e) => handleUpdateBranch(br.id, 'r', parseFloat(e.target.value) || 0)}
+                        onChange={(v) => handleUpdateBranch(br.id, 'r', v)}
                         className="h-7 w-24 bg-slate-900/50 border border-slate-800/80 rounded px-2 text-xs text-white focus:border-blue-500/50 focus:outline-none transition-all"
                       />
                     </td>
                     <td className="py-2 px-2">
-                      <input
-                        type="number"
-                        step="0.001"
+                      <SmartNumberInput
+                        step={0.001}
                         value={br.x}
-                        onChange={(e) => handleUpdateBranch(br.id, 'x', parseFloat(e.target.value) || 0)}
+                        onChange={(v) => handleUpdateBranch(br.id, 'x', v)}
                         className="h-7 w-24 bg-slate-900/50 border border-slate-800/80 rounded px-2 text-xs text-white focus:border-blue-500/50 focus:outline-none transition-all"
                       />
                     </td>
                     <td className="py-2 px-2">
-                      <input
-                        type="number"
-                        step="0.001"
+                      <SmartNumberInput
+                        step={0.001}
                         value={br.b}
-                        onChange={(e) => handleUpdateBranch(br.id, 'b', parseFloat(e.target.value) || 0)}
+                        onChange={(v) => handleUpdateBranch(br.id, 'b', v)}
                         className="h-7 w-24 bg-slate-900/50 border border-slate-800/80 rounded px-2 text-xs text-white focus:border-blue-500/50 focus:outline-none transition-all"
                       />
                     </td>

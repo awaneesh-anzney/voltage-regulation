@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { SmartNumberInput } from '@/components/ui/SmartNumberInput';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -80,20 +81,18 @@ export function FaultAnalyzer() {
 
               <div className="space-y-2">
                 <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Source MVA (S_sc'')</label>
-                <input
-                  type="number"
+                <SmartNumberInput
                   value={sourceMva}
-                  onChange={(e) => setSourceMva(parseFloat(e.target.value) || 0)}
+                  onChange={(v) => setSourceMva(v)}
                   className="w-full h-[38px] bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 text-[13px] text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-mono"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Line Length (km)</label>
-                <input
-                  type="number"
+                <SmartNumberInput
                   value={lineLength}
-                  onChange={(e) => setLineLength(parseFloat(e.target.value) || 0)}
+                  onChange={(v) => setLineLength(v)}
                   className="w-full h-[38px] bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 text-[13px] text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-mono"
                 />
               </div>
@@ -117,12 +116,11 @@ export function FaultAnalyzer() {
 
               <div className="space-y-2">
                 <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Resistance R (Ω/km)</label>
-                <input
-                  type="number"
-                  step="0.0001"
+                <SmartNumberInput
+                  step={0.0001}
                   value={customR}
-                  onChange={(e) => {
-                    setCustomR(parseFloat(e.target.value) || 0);
+                  onChange={(v) => {
+                    setCustomR(v);
                     setConductorType("Custom");
                   }}
                   className="w-full h-[38px] bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 text-[13px] text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-mono"
@@ -131,12 +129,11 @@ export function FaultAnalyzer() {
 
               <div className="space-y-2">
                 <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Reactance X (Ω/km)</label>
-                <input
-                  type="number"
-                  step="0.0001"
+                <SmartNumberInput
+                  step={0.0001}
                   value={customX}
-                  onChange={(e) => {
-                    setCustomX(parseFloat(e.target.value) || 0);
+                  onChange={(v) => {
+                    setCustomX(v);
                     setConductorType("Custom");
                   }}
                   className="w-full h-[38px] bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 text-[13px] text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-mono"
@@ -148,33 +145,30 @@ export function FaultAnalyzer() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               <div className="space-y-2">
                 <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Zero Seq. R Multiplier</label>
-                <input
-                  type="number"
-                  step="0.1"
+                <SmartNumberInput
+                  step={0.1}
                   value={zeroSeqRMult}
-                  onChange={(e) => setZeroSeqRMult(parseFloat(e.target.value) || 0)}
+                  onChange={(v) => setZeroSeqRMult(v)}
                   className="w-full h-[38px] bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 text-[13px] text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-mono"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Zero Seq. X Multiplier</label>
-                <input
-                  type="number"
-                  step="0.1"
+                <SmartNumberInput
+                  step={0.1}
                   value={zeroSeqXMult}
-                  onChange={(e) => setZeroSeqXMult(parseFloat(e.target.value) || 0)}
+                  onChange={(v) => setZeroSeqXMult(v)}
                   className="w-full h-[38px] bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 text-[13px] text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-mono"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">IEC Voltage Factor (c)</label>
-                <input
-                  type="number"
-                  step="0.05"
+                <SmartNumberInput
+                  step={0.05}
                   value={cFactor}
-                  onChange={(e) => setCFactor(parseFloat(e.target.value) || 0)}
+                  onChange={(v) => setCFactor(v)}
                   className="w-full h-[38px] bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 text-[13px] text-white focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-mono"
                 />
               </div>

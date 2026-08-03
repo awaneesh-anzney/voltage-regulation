@@ -415,7 +415,7 @@ function DashboardContent() {
             </div>
           )}
           {activeTab === "ai" && <AIInsightsTab data={data} optimalConfig={optimalConfig} />}
-          {activeTab === "scforces" && <SCForcesTab data={data} />}
+          {activeTab === "scforces" && <SCForcesTab />}
           {activeTab === "report" && <ReportTab data={data} />}
           {activeTab === "history" && (
             <HistoryTab
