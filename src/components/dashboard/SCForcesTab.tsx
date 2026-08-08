@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   ShieldAlert, Settings2, BarChart3, FileText, LineChart,
-  SlidersHorizontal, Download, AlertTriangle, CheckCircle2, XCircle
+  SlidersHorizontal, Download, AlertTriangle, CheckCircle2, XCircle,
+  FolderOpen
 } from "lucide-react";
 import { computeSCForces, getDefaultInputs } from "@/lib/scForcesEngine";
 import type { SCInputs, SCResults } from "@/lib/scForcesEngine";
+import type { Project } from "@/lib/projectStore";
 import { InputPanel } from "./sc-forces/InputPanel";
 import { ResultsDashboard } from "./sc-forces/ResultsDashboard";
 import { EquationTrace } from "./sc-forces/EquationTrace";
@@ -14,8 +16,11 @@ import { GraphsPanel } from "./sc-forces/GraphsPanel";
 import { WhatIfPanel } from "./sc-forces/WhatIfPanel";
 import { ReportExport } from "./sc-forces/ReportExport";
 import { ValidationPanel } from "./sc-forces/ValidationPanel";
+import { ProjectManager } from "./sc-forces/ProjectManager";
 
-type SubTab = "input" | "results" | "trace" | "visual" | "whatif" | "report";
+type SubTab = "input" | "results" | "trace" | "visual" | "whatif" | "report" | "projects";
+
+const STORAGE_KEY = "sc-forces-projects";
 
 const SUB_TABS: { id: SubTab; label: string; icon: React.ElementType }[] = [
   { id: "input",   label: "Parameters",    icon: Settings2 },
@@ -24,11 +29,33 @@ const SUB_TABS: { id: SubTab; label: string; icon: React.ElementType }[] = [
   { id: "visual",  label: "Visualisation", icon: LineChart },
   { id: "whatif",  label: "What-If",       icon: SlidersHorizontal },
   { id: "report",  label: "Report",        icon: Download },
+  { id: "projects", label: "Projects",     icon: FolderOpen },
 ];
 
 export function SCForcesTab() {
   const [inputs, setInputs] = useState<SCInputs>(getDefaultInputs());
   const [activeTab, setActiveTab] = useState<SubTab>("results");
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  // Load from localStorage on mount (client-side only)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        setProjects(JSON.parse(stored));
+      }
+    } catch { /* ignore parse errors */ }
+    setHydrated(true);
+  }, []);
+
+  // Persist to localStorage on every change (after initial hydration)
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+    } catch { /* ignore quota errors */ }
+  }, [projects, hydrated]);
 
   // Reactive computation — runs whenever inputs change
   const results: SCResults = useMemo(() => computeSCForces(inputs), [inputs]);
@@ -118,6 +145,15 @@ export function SCForcesTab() {
         {activeTab === "visual" && <GraphsPanel inputs={inputs} results={results} />}
         {activeTab === "whatif" && <WhatIfPanel baseInputs={inputs} baseResults={results} />}
         {activeTab === "report" && <ReportExport inputs={inputs} results={results} />}
+        {activeTab === "projects" && (
+          <ProjectManager
+            inputs={inputs}
+            results={results}
+            onLoadTestCase={(loadedInputs) => setInputs(loadedInputs)}
+            projects={projects}
+            setProjects={setProjects}
+          />
+        )}
       </div>
     </div>
   );
