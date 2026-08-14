@@ -8,9 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { calculateFaults, FaultResults, FaultInput } from '@/lib/faultSolver';
 import { CONDUCTOR_DATABASE, STANDARD_VOLTAGES } from '@/lib/constants';
-import { Shield, Sparkles, BookOpen, AlertCircle } from 'lucide-react';
+import { Shield, Sparkles, BookOpen, AlertCircle, ArrowRight } from 'lucide-react';
 
-export function FaultAnalyzer() {
+interface FaultAnalyzerProps {
+  onFeedToSCForces?: (data: { ik3_A: number; xr_ratio: number; voltage_kV: number }) => void;
+}
+
+export function FaultAnalyzer({ onFeedToSCForces }: FaultAnalyzerProps) {
   const [voltage, setVoltage] = useState<number>(220);
   const [sourceMva, setSourceMva] = useState<number>(1000);
   const [lineLength, setLineLength] = useState<number>(15);
@@ -212,6 +216,34 @@ export function FaultAnalyzer() {
           </div>
         </div>
       </div>
+
+      {/* Feed to SC Forces */}
+      {results && onFeedToSCForces && (
+        <div className="bg-gradient-to-r from-blue-500/8 to-indigo-500/8 border border-blue-500/20 rounded-xl p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div className="text-[13px] font-semibold text-white flex items-center gap-2">
+                <ArrowRight className="w-4 h-4 text-blue-400" />
+                Feed Results to SC Forces Module
+              </div>
+              <div className="text-[11px] text-slate-400 mt-1 font-mono">
+                I<sub>k3</sub> = {(results.i3Phase * 1000).toFixed(0)} A · X/R = {(results.zTotalPositive.x / Math.max(results.zTotalPositive.r, 0.0001)).toFixed(1)} · {voltage} kV
+              </div>
+            </div>
+            <button
+              onClick={() => onFeedToSCForces({
+                ik3_A: results.i3Phase * 1000,
+                xr_ratio: results.zTotalPositive.x / Math.max(results.zTotalPositive.r, 0.0001),
+                voltage_kV: voltage,
+              })}
+              className="flex items-center gap-2 px-5 py-2.5 text-[12px] font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg shadow-[0_2px_10px_rgba(59,130,246,0.2)] hover:shadow-[0_4px_16px_rgba(59,130,246,0.35)] hover:from-blue-400 hover:to-indigo-400 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 uppercase tracking-wider whitespace-nowrap"
+            >
+              <ArrowRight className="w-3.5 h-3.5" />
+              Apply to SC Forces
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Results Tables */}
       {results && (

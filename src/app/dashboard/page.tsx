@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import {
   Zap, BarChart3, DollarSign, Shield, Sparkles, FileText,
-  AlertTriangle, Menu, X as XIcon, History, Network, ShieldAlert, Activity
+  AlertTriangle, Menu, X as XIcon, History, Network, ShieldAlert, Activity, Cable
 } from "lucide-react";
 import { getDemoAnalysisData, CONDUCTORS, calculateRegulation, findOptimalTap, runOptimizer } from "@/lib/gridCalculations";
 import type { AnalysisData, OptimalConfig, SegmentResult } from "@/lib/gridCalculations";
@@ -16,6 +16,7 @@ import { ReportTab } from "@/components/dashboard/ReportTab";
 import { Sidebar, Segment } from "@/components/dashboard/Sidebar";
 import { HistoryTab } from "@/components/dashboard/HistoryTab";
 import { SCForcesTab } from "@/components/dashboard/SCForcesTab";
+import { SagTensionTab } from "@/components/dashboard/SagTensionTab";
 import { LoadFlowAnalyzer } from "@/components/calculator/LoadFlowAnalyzer";
 import { FaultAnalyzer } from "@/components/calculator/FaultAnalyzer";
 import { PrintableReport } from "@/components/calculator/PrintableReport";
@@ -54,6 +55,7 @@ const TABS = [
   { id: "contingency", label: "N-1 Contingency", icon: Shield },
   { id: "loadflow", label: "Meshed Load Flow", icon: Network },
   { id: "fault", label: "Fault Analysis", icon: ShieldAlert },
+  { id: "sagtension", label: "Sag-Tension", icon: Cable },
   { id: "scforces", label: "SC Forces", icon: Activity },
   { id: "ai", label: "AI Insights", icon: Sparkles },
   { id: "report", label: "Report", icon: FileText },
@@ -65,6 +67,14 @@ type TabId = (typeof TABS)[number]["id"];
 function DashboardContent() {
   const [activeTab, setActiveTab] = useState<TabId>("analyzer");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Cross-tab data feed state
+  const [faultFeedData, setFaultFeedData] = useState<{
+    ik3_A: number; xr_ratio: number; voltage_kV: number;
+  } | null>(null);
+  const [sagFeedData, setSagFeedData] = useState<{
+    fst_kg: number; span_m: number; conductorName: string;
+  } | null>(null);
 
   // Sidebar parameters state
   const [projName, setProjName] = useState("Riyadh North Feeder");
@@ -411,11 +421,27 @@ function DashboardContent() {
                 </div>
                 <PrintableReport />
               </div>
-              <FaultAnalyzer />
+              <FaultAnalyzer onFeedToSCForces={(data) => {
+                setFaultFeedData(data);
+                setActiveTab('scforces');
+              }} />
             </div>
           )}
+          {activeTab === "sagtension" && (
+            <SagTensionTab onFeedToSCForces={(data) => {
+              setSagFeedData(data);
+              setActiveTab('scforces');
+            }} />
+          )}
           {activeTab === "ai" && <AIInsightsTab data={data} optimalConfig={optimalConfig} />}
-          {activeTab === "scforces" && <SCForcesTab />}
+          {activeTab === "scforces" && (
+            <SCForcesTab
+              faultFeedData={faultFeedData}
+              sagFeedData={sagFeedData}
+              onFaultFeedApplied={() => setFaultFeedData(null)}
+              onSagFeedApplied={() => setSagFeedData(null)}
+            />
+          )}
           {activeTab === "report" && <ReportTab data={data} />}
           {activeTab === "history" && (
             <HistoryTab
