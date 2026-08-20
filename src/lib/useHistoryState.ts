@@ -3,7 +3,7 @@
 // Captures full project state snapshots (all module inputs + links)
 // and provides undo/redo traversal with commit descriptions.
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 
 export interface HistoryEntry<T> {
   state: T;
@@ -27,7 +27,12 @@ export interface HistoryControls<T> {
 const MAX_HISTORY = 100;
 const DEBOUNCE_MS = 2000;
 
-export function useHistoryState<T>(initialState: T, initialDescription: string = "Initial state"): HistoryControls<T> {
+export function useHistoryState<T>(
+  initialState: T,
+  initialDescription: string = "Initial state",
+  storageKey?: string
+): HistoryControls<T> {
+  const [isInitialized, setIsInitialized] = useState(false);
   const [past, setPast] = useState<HistoryEntry<T>[]>([]);
   const [present, setPresent] = useState<HistoryEntry<T>>({
     state: initialState,
@@ -36,10 +41,42 @@ export function useHistoryState<T>(initialState: T, initialDescription: string =
   });
   const [future, setFuture] = useState<HistoryEntry<T>[]>([]);
 
+
   // Debounce timer ref
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Track whether current present has uncommitted changes
   const pendingDescriptionRef = useRef<string | null>(null);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    if (storageKey && typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.present) {
+            setPast(parsed.past || []);
+            setPresent(parsed.present);
+            setFuture(parsed.future || []);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to parse history state from localStorage", e);
+      }
+    }
+    setIsInitialized(true);
+  }, [storageKey]);
+
+  // Save to localStorage whenever state changes
+  useEffect(() => {
+    if (isInitialized && storageKey && typeof window !== "undefined") {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify({ past, present, future }));
+      } catch (e) {
+        console.error("Failed to save history state to localStorage", e);
+      }
+    }
+  }, [past, present, future, isInitialized, storageKey]);
 
   // Push current present to past and set new present
   const pushState = useCallback((newState: T, description: string) => {

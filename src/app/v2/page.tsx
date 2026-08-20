@@ -126,7 +126,8 @@ export default function V2Page() {
   // ─── History-tracked project state ───
   const projectHistory = useHistoryState<ProjectState>(
     getInitialProjectState(),
-    "Project initialized"
+    "Project initialized",
+    "gridintel-v2-project-state" // This key enables localStorage persistence
   );
   const project = projectHistory.state;
 
