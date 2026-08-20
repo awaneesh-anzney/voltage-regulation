@@ -149,28 +149,68 @@
   padding-right: 28px;
 }
 
-/* Hide scrollbar utility */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+/* Global Custom Scrollbar */
+::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+  background-color: #05080f;
 }
 
-/* Custom slim green scrollbar */
-.green-scrollbar::-webkit-scrollbar {
-  height: 4px;
-  width: 4px;
+::-webkit-scrollbar-track {
+  background: #0a0f18;
+  border-radius: 6px;
 }
-.green-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.green-scrollbar::-webkit-scrollbar-thumb {
+
+::-webkit-scrollbar-thumb {
   background: #10b981;
-  border-radius: 4px;
+  border-radius: 6px;
+  border: 2px solid #0a0f18; /* Adds spacing around thumb */
 }
-.green-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #10b981 transparent;
+
+::-webkit-scrollbar-thumb:hover {
+  background: #059669;
+}
+
+/* Horizontal scrollbar arrows */
+::-webkit-scrollbar-button:horizontal:decrement {
+  width: 16px;
+  background-color: #0a0f18;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'%3E%3Cpath d='M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z'/%3E%3C/svg%3E");
+  background-size: 12px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+::-webkit-scrollbar-button:horizontal:increment {
+  width: 16px;
+  background-color: #0a0f18;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'%3E%3Cpath d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z'/%3E%3C/svg%3E");
+  background-size: 12px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Vertical scrollbar arrows */
+::-webkit-scrollbar-button:vertical:decrement {
+  height: 16px;
+  background-color: #0a0f18;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'%3E%3Cpath d='M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14l-6-6z'/%3E%3C/svg%3E");
+  background-size: 12px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+::-webkit-scrollbar-button:vertical:increment {
+  height: 16px;
+  background-color: #0a0f18;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'%3E%3Cpath d='M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6-1.41-1.41z'/%3E%3C/svg%3E");
+  background-size: 12px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Override utility classes so they use the new global scrollbar instead of hiding it */
+.no-scrollbar {
+  scrollbar-width: auto;
+  -ms-overflow-style: auto;
 }

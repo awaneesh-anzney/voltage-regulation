@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Zap, Ruler, Cable, Settings, Layers } from "lucide-react";
+import { autoFillSCForcesFields } from "@/lib/ceaClearances";
 import type { SCInputs } from "@/lib/scForcesEngine";
 import { CONDUCTOR_LIBRARY, getConductorTypes, getConductorsByType } from "@/lib/conductorLibrary";
 import type { ConductorSpec } from "@/lib/conductorLibrary";
@@ -168,7 +169,15 @@ export function InputPanel({ inputs, updateInput, updateInputs }: InputPanelProp
             <Field label="System voltage" unit="V">
               <SelectInput
                 value={String(inputs.vsys)}
-                onChange={v => updateInput('vsys', parseFloat(v))}
+                onChange={v => {
+                  const kv = parseFloat(v) / 1000;
+                  const { phaseToPhaseClearanceM, suggestedPhaseSpacingM } = autoFillSCForcesFields(kv);
+                  updateInputs({
+                    vsys: parseFloat(v),
+                    clph: phaseToPhaseClearanceM,
+                    aph: suggestedPhaseSpacingM,
+                  });
+                }}
                 options={[
                   { value: '132000', label: '132 kV' },
                   { value: '220000', label: '220 kV' },
