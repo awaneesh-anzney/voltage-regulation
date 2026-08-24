@@ -225,10 +225,14 @@ export function LossesCanvas({ inputs }: { inputs: LossesInputs }) {
           <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Reactive Losses</div>
           <div className="text-[22px] font-mono font-bold mt-1 text-blue-400">{calcResult.totalReactiveLoss.toFixed(2)}<span className="text-[13px] text-muted-foreground ml-1">MVAr</span></div>
         </div>
-        <div className="bg-card border border-border rounded-xl p-4">
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Annual Loss Cost</div>
-          <div className="text-[22px] font-mono font-bold mt-1 text-red-400">₹{annualLossCost_Lakhs.toFixed(1)}<span className="text-[13px] text-muted-foreground ml-1">L/yr</span></div>
-          <div className="text-[10px] text-muted-foreground/80 mt-0.5">{annualLossEnergy_kWh.toFixed(0)} kWh/yr</div>
+        <div className="bg-card border border-border rounded-xl p-4 overflow-hidden">
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold truncate">Annual Loss Cost</div>
+          <div className="text-lg xl:text-xl font-mono font-bold mt-1 text-red-400 truncate tracking-tighter" title={`₹${annualLossCost_Lakhs.toFixed(1)} Lakhs/yr`}>
+            ₹{annualLossCost_Lakhs.toFixed(1)}<span className="text-[11px] text-muted-foreground ml-1 font-sans tracking-normal">L/yr</span>
+          </div>
+          <div className="text-[10px] text-muted-foreground/80 mt-0.5 truncate" title={`${annualLossEnergy_kWh.toFixed(0)} kWh/yr`}>
+            {annualLossEnergy_kWh.toLocaleString(undefined, { maximumFractionDigits: 0 })} kWh/yr
+          </div>
         </div>
         <div className="bg-card border border-border rounded-xl p-4">
           <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Optimal OLTC Tap</div>

@@ -10,9 +10,10 @@ import type { FaultInput, FaultResults } from "@/lib/faultSolver";
 import { CONDUCTOR_DATABASE, STANDARD_VOLTAGES } from "@/lib/constants";
 
 // ─── Smart Number Input (focus-managed) ───
-function InputField({ label, value, unit, onChange, step, disabled }: {
+function InputField({ label, value, unit, onChange, step, disabled, iecRef }: {
   label: string; value: number; unit?: string;
   onChange: (v: number) => void; step?: number; disabled?: boolean;
+  iecRef?: { clause: string; desc: string };
 }) {
   const [localValue, setLocalValue] = useState<string>(String(value));
   const [isFocused, setIsFocused] = useState(false);
@@ -20,7 +21,18 @@ function InputField({ label, value, unit, onChange, step, disabled }: {
 
   return (
     <div className="space-y-1">
-      <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</label>
+      <div className="flex items-center justify-between">
+        <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</label>
+        {iecRef && (
+          <div className="group relative cursor-help flex items-center">
+            <BookOpen className="w-3 h-3 text-emerald-500/70" />
+            <div className="absolute right-0 bottom-full mb-1 hidden group-hover:block w-48 p-2 bg-slate-800 border border-slate-700 rounded shadow-xl z-50 text-[10px] leading-tight">
+              <span className="font-bold text-emerald-400 block mb-0.5">{iecRef.clause}</span>
+              <span className="text-slate-300">{iecRef.desc}</span>
+            </div>
+          </div>
+        )}
+      </div>
       <div className="flex items-center gap-1.5">
         <input
           type="number"
@@ -82,6 +94,7 @@ export function FaultInspector({ inputs, onUpdate, onCalculate }: {
 }) {
   const conductorNames = Object.keys(CONDUCTOR_DATABASE);
   const [selectedConductor, setSelectedConductor] = useState("Zebra");
+  const [isCalculating, setIsCalculating] = useState(false);
 
   const handleConductorChange = (name: string) => {
     setSelectedConductor(name);
@@ -116,17 +129,28 @@ export function FaultInspector({ inputs, onUpdate, onCalculate }: {
             </select>
           </div>
           <InputField label="Source MVA (S_sc'')" value={inputs.sourceMva} unit="MVA" onChange={(v) => onUpdate({ sourceMva: v })} />
-          <InputField label="Line Length" value={inputs.lineLengthKm} unit="km" onChange={(v) => onUpdate({ lineLengthKm: v })} step={1} />
-          <InputField label="IEC Voltage Factor (c)" value={inputs.cFactor} unit="" onChange={(v) => onUpdate({ cFactor: v })} step={0.05} />
+          <InputField label="Voltage Factor c" value={inputs.cFactor} unit="" onChange={(v) => onUpdate({ cFactor: v })} step={0.01}
+            iecRef={{ clause: "IEC 60909-0 Cl. 2.4", desc: "Voltage factor for calculation of maximum short-circuit currents" }} />
         </Section>
 
-        <Section title="Conductor" accent="amber">
-          <div className="space-y-1">
-            <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Conductor Template</label>
+        <Section title="Overhead Line" accent="teal">
+          <InputField label="Line Length" value={inputs.lineLengthKm} unit="km" onChange={(v) => onUpdate({ lineLengthKm: v })} />
+          <div className="space-y-1 mb-3">
+            <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Conductor Spec</label>
             <select
               value={selectedConductor}
-              onChange={(e) => handleConductorChange(e.target.value)}
-              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-[13px] text-foreground focus:outline-none focus:border-amber-500/30 cursor-pointer"
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedConductor(val);
+                if (val !== "Custom") {
+                  const spec = CONDUCTOR_DATABASE[val];
+                  onUpdate({
+                    lineRPerKm: spec.resistance,
+                    lineXPerKm: spec.reactance
+                  });
+                }
+              }}
+              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-[13px] text-foreground focus:outline-none focus:border-teal-500/30 cursor-pointer"
             >
               {conductorNames.map(n => <option key={n} value={n}>{n} ({CONDUCTOR_DATABASE[n].sizeSqmm} mm²)</option>)}
               <option value="Custom">Custom Specifications</option>
@@ -143,10 +167,24 @@ export function FaultInspector({ inputs, onUpdate, onCalculate }: {
       </div>
 
       <div className="p-3 border-t border-border shrink-0">
-        <button onClick={onCalculate}
-          className="w-full py-3 rounded-xl text-[13px] font-bold text-foreground bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
-          <Zap className="w-4 h-4" />
-          Calculate Fault Levels
+        <button onClick={() => {
+            setIsCalculating(true);
+            setTimeout(() => {
+              onCalculate();
+              setIsCalculating(false);
+            }, 300);
+          }}
+          disabled={isCalculating}
+          className="w-full py-3 rounded-xl text-[13px] font-bold text-foreground bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+          {isCalculating ? (
+            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            <Zap className="w-4 h-4" />
+          )}
+          {isCalculating ? "Calculating..." : "Calculate Fault Levels"}
         </button>
       </div>
     </div>

@@ -9,6 +9,7 @@ import type { ModuleId } from "./Sidebar";
 // Breadcrumb mapping
 const MODULE_BREADCRUMBS: Record<ModuleId, { domain: string; domainEmoji: string; label: string }> = {
   home:        { domain: "", domainEmoji: "", label: "Home" },
+  projects:    { domain: "Workspace", domainEmoji: "📁", label: "Projects & Cases" },
   fault:       { domain: "Electrical", domainEmoji: "⚡", label: "Fault Analysis" },
   loadflow:    { domain: "Electrical", domainEmoji: "⚡", label: "Load Flow" },
   losses:      { domain: "Electrical", domainEmoji: "⚡", label: "Losses & ROI" },
@@ -25,6 +26,8 @@ const MODULE_BREADCRUMBS: Record<ModuleId, { domain: string; domainEmoji: string
 interface TopBarProps {
   activeModule: ModuleId;
   projectName: string;
+  activeStudyName?: string;
+  activeCaseName?: string;
   onProjectNameChange: (name: string) => void;
   systemVoltage_kV: number;
   baseMVA: number;
@@ -40,7 +43,7 @@ interface TopBarProps {
 }
 
 export function TopBar({
-  activeModule, projectName, onProjectNameChange,
+  activeModule, projectName, activeStudyName, activeCaseName, onProjectNameChange,
   systemVoltage_kV, baseMVA, activeLinksCount, onCommandPalette,
   canUndo, canRedo, onUndo, onRedo,
   onNewCase, onSaveCase, onLoadCase,
@@ -69,7 +72,7 @@ export function TopBar({
     return () => document.removeEventListener("mousedown", handler);
   }, [fileMenuOpen]);
 
-  const bc = MODULE_BREADCRUMBS[activeModule];
+  const bc = MODULE_BREADCRUMBS[activeModule] || { domain: "", label: activeModule };
 
   const handleSave = () => {
     onProjectNameChange(editValue.trim() || projectName);
@@ -111,7 +114,7 @@ export function TopBar({
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-foreground hover:bg-accent transition-colors cursor-pointer"
               >
                 <FilePlus className="w-4 h-4 text-blue-400" />
-                <span>New Case</span>
+                <span>Duplicate Case</span>
                 <span className="ml-auto text-[10px] text-muted-foreground font-mono">Ctrl+N</span>
               </button>
               <button
@@ -119,7 +122,7 @@ export function TopBar({
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-foreground hover:bg-accent transition-colors cursor-pointer"
               >
                 <Save className="w-4 h-4 text-emerald-400" />
-                <span>Save Case</span>
+                <span>Save Workspace</span>
                 <span className="ml-auto text-[10px] text-muted-foreground font-mono">Ctrl+S</span>
               </button>
               <div className="h-px bg-border mx-3 my-1" />
@@ -128,7 +131,7 @@ export function TopBar({
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-foreground hover:bg-accent transition-colors cursor-pointer"
               >
                 <FolderOpen className="w-4 h-4 text-amber-400" />
-                <span>Load Case</span>
+                <span>Load Workspace</span>
                 <span className="ml-auto text-[10px] text-muted-foreground font-mono">Ctrl+O</span>
               </button>
             </div>
@@ -166,7 +169,7 @@ export function TopBar({
         </div>
       </div>
 
-      {/* Project Name (Center) */}
+      {/* Project & Case Name (Center) */}
       <div className="flex-1 flex justify-center">
         {isEditing ? (
           <input
@@ -179,13 +182,27 @@ export function TopBar({
             className="bg-accent/80 border border-blue-500/30 rounded-lg px-3 py-1 text-[13px] text-foreground font-medium text-center focus:outline-none focus:ring-1 focus:ring-blue-500/30 w-72"
           />
         ) : (
-          <button
-            onClick={() => { setEditValue(projectName); setIsEditing(true); }}
-            className="flex items-center gap-1.5 text-[13px] text-foreground/90 hover:text-foreground transition-colors cursor-pointer group"
-          >
-            <span className="font-medium">{projectName}</span>
-            <Pencil className="w-3 h-3 text-muted-foreground/80 group-hover:text-blue-400 transition-colors" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setEditValue(projectName); setIsEditing(true); }}
+              className="flex items-center gap-1.5 text-[13px] text-foreground/90 hover:text-foreground transition-colors cursor-pointer group"
+            >
+              <span className="font-medium">{projectName}</span>
+              <Pencil className="w-3 h-3 text-muted-foreground/80 group-hover:text-blue-400 transition-colors" />
+            </button>
+            {activeStudyName && (
+              <>
+                <span className="text-muted-foreground/50 text-[11px] font-light">/</span>
+                <span className="text-[12px] font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{activeStudyName}</span>
+              </>
+            )}
+            {activeCaseName && (
+              <>
+                <span className="text-muted-foreground/50 text-[11px] font-light">/</span>
+                <span className="text-[12px] font-medium text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">{activeCaseName}</span>
+              </>
+            )}
+          </div>
         )}
       </div>
 

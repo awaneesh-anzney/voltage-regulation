@@ -16,6 +16,7 @@ import { LossesInspector, LossesCanvas, getDefaultLossesInputs } from "@/compone
 import { CTSizingInspector, CTSizingCanvas } from "@/components/v2/CTSizingModule";
 import { ProtectionInspector, ProtectionCanvas } from "@/components/v2/ProtectionModule";
 import { ContingencyCanvas } from "@/components/v2/ContingencyModule";
+import { ProjectManagerModule } from "@/components/v2/ProjectManagerModule";
 import type { ModuleId } from "@/components/v2/Sidebar";
 
 import { computeSCForces, getDefaultInputs } from "@/lib/scForcesEngine";
@@ -36,53 +37,11 @@ import type { ProtectionInputs } from "@/lib/protectionEngine";
 
 import {
   Network, DollarSign, Shield,
-  Sparkles, FileText, History, Construction, ShieldAlert
+  Sparkles, FileText, History, Construction, ShieldAlert, FolderOpen
 } from "lucide-react";
 
-// ─── Project State Shape ───
-interface ProjectState {
-  projectName: string;
-  faultInputs: FaultInput;
-  faultResults: FaultResults | null;
-  scInputs: SCInputs;
-  sagInputs: SagTensionInputs;
-  lfBuses: Bus[];
-  lfBranches: Branch[];
-  lfResult: LoadFlowResult | null;
-  lfBaseMva: number;
-  lossesInputs: LossesInputs;
-  ctInputs: CTSizingInputs;
-  protectionInputs: ProtectionInputs;
-  hasLinkedFault: boolean;
-  hasLinkedSag: boolean;
-  faultLinkedValues: { ik3: number; xr: number } | null;
-  sagLinkedValues: { fst_kg: number; span: number } | null;
-}
-
-function getInitialProjectState(): ProjectState {
-  return {
-    projectName: "Riyadh North 220kV Feeder",
-    faultInputs: {
-      voltageKv: 220, sourceMva: 1000, lineLengthKm: 15,
-      lineRPerKm: 0.0687, lineXPerKm: 0.320,
-      zeroSeqRMultiplier: 3.0, zeroSeqXMultiplier: 3.0, cFactor: 1.1,
-    },
-    faultResults: null,
-    scInputs: getDefaultInputs(),
-    sagInputs: getDefaultSagTensionInputs(),
-    lfBuses: getDefaultBuses(),
-    lfBranches: getDefaultBranches(),
-    lfResult: null,
-    lfBaseMva: 100,
-    lossesInputs: getDefaultLossesInputs(),
-    ctInputs: getDefaultCTSizingInputs(),
-    protectionInputs: getDefaultProtectionInputs(),
-    hasLinkedFault: false,
-    hasLinkedSag: false,
-    faultLinkedValues: null,
-    sagLinkedValues: null,
-  };
-}
+import { ProjectState } from "@/lib/workspaceTypes";
+import { useWorkspaceState } from "@/lib/useWorkspaceState";
 
 // Placeholder for modules not yet integrated
 function PlaceholderModule({ name, icon: Icon, description }: { name: string; icon: React.ElementType; description: string }) {
@@ -111,12 +70,16 @@ const MODULE_CONFIG: Record<string, { name: string; icon: React.ElementType; des
   ctsizing:    { name: "CT Sizing", icon: ShieldAlert, description: "Knee Point Voltage and Burden calculation as per IS 2705 / IEC 61869." },
   ai:          { name: "AI Insights", icon: Sparkles, description: "AI-powered analysis recommendations across all modules." },
   report:      { name: "Engineering Report", icon: FileText, description: "Consolidated engineering report with calculation traces." },
+  projects:    { name: "Projects & Cases", icon: FolderOpen, description: "Manage projects, studies, and cases." },
 };
 
 // Modules that have the Right Inspector panel
 const MODULES_WITH_INSPECTOR: ModuleId[] = ["scforces", "sagtension", "fault", "loadflow", "losses", "ctsizing", "protection"];
 
 export default function V2Page() {
+  // ─── Workspace State ───
+  const ws = useWorkspaceState();
+
   // ─── Persisted UI state ───
   const [activeModule, setActiveModuleRaw] = useState<ModuleId>("home");
   const [sidebarCollapsed, setSidebarCollapsedRaw] = useState(false);
@@ -149,17 +112,28 @@ export default function V2Page() {
   const [systemVoltage_kV] = useState(220);
   const [baseMVA] = useState(1000);
 
-  // ─── History-tracked project state ───
+  // ─── History-tracked project state (scoped to ACTIVE CASE) ───
   const projectHistory = useHistoryState<ProjectState>(
-    getInitialProjectState(),
-    "Project initialized",
-    "gridintel-v2-project-state" // This key enables localStorage persistence
+    ws.activeCase.state,
+    "Case opened",
+    undefined, // Do NOT persist history to localStorage directly
+    ws.updateActiveCaseState,
+    ws.activeCase.id // resetToken
   );
+  
   const project = projectHistory.state;
-  const projectName = project.projectName;
+  const projectName = ws.activeProject.name;
+  
   const setProjectName = useCallback((name: string) => {
-    projectHistory.setState({ ...project, projectName: name }, "Renamed project");
-  }, [project, projectHistory]);
+    ws.updateWorkspace(prev => {
+      const newProjects = [...prev.projects];
+      const pIdx = newProjects.findIndex(p => p.id === prev.activeProjectId);
+      if (pIdx !== -1) {
+        newProjects[pIdx] = { ...newProjects[pIdx], name };
+      }
+      return { ...prev, projects: newProjects };
+    });
+  }, [ws]);
 
   // Stale-data dismissal (UI-only, not part of history)
   const [staleFaultDismissed, setStaleFaultDismissed] = useState(false);
@@ -341,59 +315,66 @@ export default function V2Page() {
 
   // ─── File Management (New / Save / Load) ───
   const handleNewCase = useCallback(() => {
-    if (window.confirm("Create a new case? All unsaved data will be lost.")) {
-      projectHistory.clearHistory();
-      const fresh = getInitialProjectState();
-      projectHistory.setState(fresh, "New case created");
+    if (window.confirm("Create a new case in the current project?")) {
+      const pIdx = ws.workspace.projects.findIndex(p => p.id === ws.workspace.activeProjectId);
+      if (pIdx === -1) return;
+      const project = ws.workspace.projects[pIdx];
+      const newName = prompt("Enter a name for the new case:", `Case ${ws.activeStudy.cases.length + 1}`);
+      if (!newName) return;
+      
+      ws.duplicateCase(ws.activeCase.id, newName);
       setActiveModule("home");
     }
-  }, [projectHistory, setActiveModule]);
+  }, [ws, setActiveModule]);
 
   const handleSaveCase = useCallback(() => {
     const exportData = {
-      _version: "gridintel-v2",
+      _version: "gridintel-workspace-v1",
       _exportedAt: new Date().toISOString(),
-      projectName,
-      state: project,
+      workspace: ws.workspace,
     };
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${projectName.replace(/[^a-zA-Z0-9]/g, "_")}_${new Date().toISOString().split("T")[0]}.json`;
+    a.download = `gridintel_workspace_${new Date().toISOString().split("T")[0]}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-  }, [project, projectName]);
+  }, [ws.workspace]);
 
   const handleLoadCase = useCallback((file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target?.result as string);
-        // Support both wrapped format and raw state
-        const loadedState: ProjectState = data.state || data;
-        // Validate it has the expected shape
-        if (!loadedState.faultInputs || !loadedState.scInputs) {
-          alert("Invalid case file: missing required fields.");
-          return;
+        if (data._version === "gridintel-workspace-v1" && data.workspace) {
+          ws.setWorkspace(data.workspace);
+          setActiveModule("home");
+        } else if (data.state) {
+          // Backward compatibility with single-case exports
+          alert("Legacy single-case file detected. Creating a new project for it.");
+          const newProjectName = data.projectName || "Imported Project";
+          ws.createProject(newProjectName);
+          // Need to manually set state since createProject is async-ish via setState, 
+          // we should just inject it directly.
+          ws.setWorkspace(prev => {
+            const p = prev.projects[prev.projects.length - 1];
+            p.studies[0].cases[0].state = data.state;
+            return { ...prev };
+          });
+          setActiveModule("home");
+        } else {
+          alert("Invalid workspace file.");
         }
-        // Ensure projectName exists (backward compat)
-        if (!loadedState.projectName) {
-          loadedState.projectName = data.projectName || "Imported Case";
-        }
-        projectHistory.clearHistory();
-        projectHistory.setState(loadedState, `Loaded case: ${loadedState.projectName}`);
-        projectHistory.commit(`Loaded case: ${loadedState.projectName}`);
-        setActiveModule("home");
       } catch (err) {
-        alert("Failed to parse case file. Please check the file format.");
+        alert("Failed to parse file. Please check the file format.");
         console.error(err);
       }
     };
     reader.readAsText(file);
-  }, [projectHistory, setActiveModule]);
+  }, [ws, setActiveModule]);
 
   // ─── Global keyboard shortcuts ───
   useEffect(() => {
@@ -425,6 +406,25 @@ export default function V2Page() {
     switch (activeModule) {
       case "home":
         return <BentoHome />;
+      case "projects":
+        return (
+          <ProjectManagerModule 
+            workspace={ws.workspace}
+            activeProjectId={ws.activeProject.id}
+            activeStudyId={ws.activeStudy.id}
+            activeCaseId={ws.activeCase.id}
+            onCreateProject={ws.createProject}
+            onSetActiveProject={ws.setActiveProject}
+            onCreateStudy={ws.createStudy}
+            onSetActiveStudy={ws.setActiveStudy}
+            onDeleteStudy={ws.deleteStudy}
+            onDeleteProject={ws.deleteProject}
+            onCreateCase={ws.createCase}
+            onDuplicateCase={ws.duplicateCase}
+            onDeleteCase={ws.deleteCase}
+            onSetActiveCase={(id) => { ws.setActiveCase(id); setActiveModule("home"); }}
+          />
+        );
       case "fault":
         return <FaultCanvas inputs={project.faultInputs} results={project.faultResults} onFeedToSCForces={handleFaultFeedToSC} />;
       case "scforces":
@@ -485,7 +485,7 @@ export default function V2Page() {
           />
         );
       case "report":
-        return <ReportModule project={project} scResults={scResults} />;
+        return <ReportModule project={project} scResults={scResults} faultResults={project.faultResults} sagResults={sagResults} />;
       case "loadflow":
         return <LoadFlowCanvas buses={project.lfBuses} branches={project.lfBranches} result={project.lfResult} />;
       case "losses":
@@ -520,7 +520,7 @@ export default function V2Page() {
             inputs={project.scInputs}
             onUpdate={updateScInput}
             onUpdateInputs={updateScInputs}
-            onCalculate={() => {}}
+            onCalculate={() => projectHistory.commit("Calculated SC Forces")}
             hasLinkedFault={project.hasLinkedFault}
             hasLinkedSag={project.hasLinkedSag}
           />
@@ -592,6 +592,8 @@ export default function V2Page() {
       <TopBar
         activeModule={activeModule}
         projectName={projectName}
+        activeStudyName={ws.activeStudy.name}
+        activeCaseName={ws.activeCase.name}
         onProjectNameChange={setProjectName}
         systemVoltage_kV={systemVoltage_kV}
         baseMVA={baseMVA}

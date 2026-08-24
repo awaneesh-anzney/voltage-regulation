@@ -84,19 +84,21 @@ export function LoadFlowInspector({ buses, branches, onUpdateBus, onUpdateBranch
   onSolve: () => void;
   baseMva: number; onBaseMvaChange: (v: number) => void;
 }) {
+  const [isSolving, setIsSolving] = useState(false);
+
   return (
     <div className="h-full flex flex-col">
       <div className="px-4 py-3 border-b border-border shrink-0">
         <h3 className="text-[13px] font-bold text-foreground flex items-center gap-1.5">
-          <Settings2 className="w-4 h-4 text-blue-400" />
-          Load Flow Parameters
+          <Settings2 className="w-4 h-4 text-amber-400" />
+          Network Topology
         </h3>
-        <p className="text-[10px] text-muted-foreground/80 mt-0.5">Newton-Raphson Method</p>
+        <p className="text-[10px] text-muted-foreground/80 mt-0.5">Buses & Branches (Newton-Raphson)</p>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar">
-        <Section title="System" accent="blue" defaultOpen>
-          <InputField label="Base MVA" value={baseMva} unit="MVA" onChange={onBaseMvaChange} />
+        <Section title="System Base" accent="slate" defaultOpen>
+          <InputField label="Base MVA" value={baseMva} unit="MVA" onChange={(v) => onBaseMvaChange(v as number)} />
         </Section>
 
         <Section title={`Buses (${buses.length})`} accent="amber" defaultOpen>
@@ -118,12 +120,12 @@ export function LoadFlowInspector({ buses, branches, onUpdateBus, onUpdateBranch
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <InputField label="V (p.u.)" value={bus.v} onChange={(v) => onUpdateBus(i, { v })} step={0.01} />
-                <InputField label="Base kV" value={bus.baseKv} onChange={(v) => onUpdateBus(i, { baseKv: v })} />
-                <InputField label="P_Gen" value={bus.pGen} unit="MW" onChange={(v) => onUpdateBus(i, { pGen: v })} />
-                <InputField label="Q_Gen" value={bus.qGen} unit="MVAr" onChange={(v) => onUpdateBus(i, { qGen: v })} />
-                <InputField label="P_Load" value={bus.pLoad} unit="MW" onChange={(v) => onUpdateBus(i, { pLoad: v })} />
-                <InputField label="Q_Load" value={bus.qLoad} unit="MVAr" onChange={(v) => onUpdateBus(i, { qLoad: v })} />
+                <InputField label="V (p.u.)" value={bus.v} onChange={(v) => onUpdateBus(i, { v: v as number })} step={0.01} />
+                <InputField label="Base kV" value={bus.baseKv} onChange={(v) => onUpdateBus(i, { baseKv: v as number })} />
+                <InputField label="P_Gen" value={bus.pGen} unit="MW" onChange={(v) => onUpdateBus(i, { pGen: v as number })} />
+                <InputField label="Q_Gen" value={bus.qGen} unit="MVAr" onChange={(v) => onUpdateBus(i, { qGen: v as number })} />
+                <InputField label="P_Load" value={bus.pLoad} unit="MW" onChange={(v) => onUpdateBus(i, { pLoad: v as number })} />
+                <InputField label="Q_Load" value={bus.qLoad} unit="MVAr" onChange={(v) => onUpdateBus(i, { qLoad: v as number })} />
               </div>
             </div>
           ))}
@@ -163,9 +165,9 @@ export function LoadFlowInspector({ buses, branches, onUpdateBus, onUpdateBranch
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                <InputField label="R (p.u.)" value={br.r} onChange={(v) => onUpdateBranch(i, { r: v })} step={0.001} />
-                <InputField label="X (p.u.)" value={br.x} onChange={(v) => onUpdateBranch(i, { x: v })} step={0.001} />
-                <InputField label="B (p.u.)" value={br.b} onChange={(v) => onUpdateBranch(i, { b: v })} step={0.001} />
+                <InputField label="R (p.u.)" value={br.r} onChange={(v) => onUpdateBranch(i, { r: v as number })} step={0.001} />
+                <InputField label="X (p.u.)" value={br.x} onChange={(v) => onUpdateBranch(i, { x: v as number })} step={0.001} />
+                <InputField label="B (p.u.)" value={br.b} onChange={(v) => onUpdateBranch(i, { b: v as number })} step={0.001} />
               </div>
             </div>
           ))}
@@ -177,10 +179,24 @@ export function LoadFlowInspector({ buses, branches, onUpdateBus, onUpdateBranch
       </div>
 
       <div className="p-3 border-t border-border shrink-0">
-        <button onClick={onSolve}
-          className="w-full py-3 rounded-xl text-[13px] font-bold text-foreground bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
-          <Play className="w-4 h-4" />
-          Solve Load Flow
+        <button onClick={() => {
+            setIsSolving(true);
+            setTimeout(() => {
+              onSolve();
+              setIsSolving(false);
+            }, 300);
+          }}
+          disabled={isSolving}
+          className="w-full py-3 rounded-xl text-[13px] font-bold text-foreground bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+          {isSolving ? (
+            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            <Play className="w-4 h-4" />
+          )}
+          {isSolving ? "Solving..." : "Solve Load Flow"}
         </button>
       </div>
     </div>

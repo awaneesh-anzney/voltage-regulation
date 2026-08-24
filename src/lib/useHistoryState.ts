@@ -32,7 +32,9 @@ const DEBOUNCE_MS = 2000;
 export function useHistoryState<T>(
   initialState: T,
   initialDescription: string = "Initial state",
-  storageKey?: string
+  storageKey?: string,
+  onStateChange?: (state: T) => void,
+  resetToken?: string // When this token changes, history is cleared and initialState is adopted
 ): HistoryControls<T> {
   const [isInitialized, setIsInitialized] = useState(false);
   const [past, setPast] = useState<HistoryEntry<T>[]>([]);
@@ -43,11 +45,28 @@ export function useHistoryState<T>(
   });
   const [future, setFuture] = useState<HistoryEntry<T>[]>([]);
 
-
   // Debounce timer ref
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Track whether current present has uncommitted changes
   const pendingDescriptionRef = useRef<string | null>(null);
+
+  // Reset history if resetToken changes (e.g., switched to a different case)
+  useEffect(() => {
+    if (isInitialized) {
+      setPast([]);
+      setFuture([]);
+      setPresent({
+        state: initialState,
+        description: initialDescription,
+        timestamp: Date.now(),
+      });
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+        pendingDescriptionRef.current = null;
+      }
+    }
+  }, [resetToken]);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -94,6 +113,13 @@ export function useHistoryState<T>(
       saveToStorage(past, future);
     }
   }, [past, present, future, isInitialized, storageKey]);
+
+  // Notify parent of state changes
+  useEffect(() => {
+    if (isInitialized && onStateChange) {
+      onStateChange(present.state);
+    }
+  }, [present.state, isInitialized]);
 
   // Push current present to past and set new present
   const pushState = useCallback((newState: T, description: string) => {

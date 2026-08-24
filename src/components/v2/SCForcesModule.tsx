@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   ShieldAlert, Settings2, BarChart3, FileText, LineChart,
   SlidersHorizontal, Download, AlertTriangle, CheckCircle2, XCircle,
-  FolderOpen, Zap, Cable, X as XIcon, Link2, ChevronDown, ChevronRight
+  FolderOpen, Zap, Cable, X as XIcon, Link2, ChevronDown, ChevronRight, Printer
 } from "lucide-react";
 import { computeSCForces, getDefaultInputs } from "@/lib/scForcesEngine";
 import type { SCInputs, SCResults } from "@/lib/scForcesEngine";
@@ -176,6 +176,8 @@ export function SCForcesInspector({ inputs, onUpdate, onUpdateInputs, onCalculat
   const currentType = inputs.conductorName.split(' ')[0] || 'AAC';
   const conductorsForType = getConductorsByType(currentType);
   const currentName = inputs.conductorName.split(' ').slice(1).join(' ') || inputs.conductorName;
+  const [isCalculating, setIsCalculating] = useState(false);
+
   return (
     <div className="h-full flex flex-col">
       <div className="px-4 py-3 border-b border-border shrink-0">
@@ -338,10 +340,24 @@ export function SCForcesInspector({ inputs, onUpdate, onUpdateInputs, onCalculat
 
       {/* Calculate Button */}
       <div className="p-3 border-t border-border shrink-0">
-        <button onClick={onCalculate}
-          className="w-full py-3 rounded-xl text-[13px] font-bold text-foreground bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
-          <Zap className="w-4 h-4" />
-          Calculate SC Forces
+        <button onClick={() => {
+            setIsCalculating(true);
+            setTimeout(() => {
+              onCalculate();
+              setIsCalculating(false);
+            }, 300);
+          }}
+          disabled={isCalculating}
+          className="w-full py-3 rounded-xl text-[13px] font-bold text-foreground bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+          {isCalculating ? (
+            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            <Zap className="w-4 h-4" />
+          )}
+          {isCalculating ? "Calculating..." : "Calculate SC Forces"}
         </button>
       </div>
     </div>
@@ -358,20 +374,27 @@ const CANVAS_TABS: { id: CanvasTab; label: string; icon: React.ElementType }[] =
   { id: "whatif",  label: "What-If",        icon: SlidersHorizontal },
 ];
 
-export function SCForcesCanvas({ inputs, results }: { inputs: SCInputs; results: SCResults }) {
+export function SCForcesCanvas({ inputs, results, onViewReport }: { 
+  inputs: SCInputs; 
+  results: SCResults | null;
+  onViewReport?: () => void;
+}) {
   const [tab, setTab] = useState<CanvasTab>("results");
+  if (!results) return null;
 
   return (
     <div className="p-6 space-y-5 max-w-7xl mx-auto pb-20">
       {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
-          <ShieldAlert className="w-5 h-5 text-blue-500" />
-          Short-Circuit Mechanical Forces
-        </h1>
-        <p className="text-[13px] text-muted-foreground mt-1.5 max-w-2xl">
-          IEC 60865-1 / IEC 61936-1 compliant analysis for flexible conductors. Structural consequence analysis of fault currents on transmission line spans.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            <ShieldAlert className="w-5 h-5 text-blue-500" />
+            Short-Circuit Mechanical Forces
+          </h1>
+          <p className="text-[13px] text-muted-foreground mt-1.5 max-w-2xl">
+            IEC 60865-1 / IEC 61936-1 compliant analysis for flexible conductors. Structural consequence analysis of fault currents on transmission line spans.
+          </p>
+        </div>
       </div>
 
       {/* Info Strip */}

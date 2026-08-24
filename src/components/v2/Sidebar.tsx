@@ -4,11 +4,11 @@ import { useState } from "react";
 import {
   Zap, BarChart3, DollarSign, Shield, Network, ShieldAlert, Activity,
   Cable, Sparkles, FileText, History, Home, Lock, Gauge,
-  ChevronDown, ChevronRight, PanelLeftClose, PanelLeft, Settings
+  ChevronDown, ChevronRight, PanelLeftClose, PanelLeft, Settings, FolderOpen
 } from "lucide-react";
 
 export type ModuleId =
-  | "home"
+  | "home" | "projects"
   | "fault" | "loadflow" | "losses" | "contingency" | "protection" | "ctsizing"
   | "sagtension" | "scforces"
   | "ai" | "report" | "history";
@@ -107,8 +107,8 @@ export function Sidebar({ activeModule, onModuleChange, collapsed, onToggle }: S
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-3 px-2 space-y-1 no-scrollbar">
-        {/* Home */}
-        <div className="pt-2">
+        {/* Home & Projects */}
+        <div className="pt-2 space-y-1">
           <button
             onClick={() => onModuleChange("home")}
             className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all cursor-pointer ${
@@ -119,6 +119,17 @@ export function Sidebar({ activeModule, onModuleChange, collapsed, onToggle }: S
           >
           <Home className="w-4 h-4 shrink-0" />
           {!collapsed && <span>Home</span>}
+          </button>
+          <button
+            onClick={() => onModuleChange("projects")}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all cursor-pointer ${
+              activeModule === "projects"
+                ? "border-l-2 border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                : "text-muted-foreground hover:bg-accent/60 hover:text-foreground border-l-2 border-transparent"
+            }`}
+          >
+          <FolderOpen className="w-4 h-4 shrink-0" />
+          {!collapsed && <span>Projects & Cases</span>}
           </button>
         </div>
 

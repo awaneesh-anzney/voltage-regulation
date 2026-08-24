@@ -49,9 +49,9 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onRunCalculation, 
     // Actions
     { id: "run", label: "Run Calculation", description: "Execute active module", icon: Play, category: "action", action: () => { onRunCalculation?.(); onClose(); } },
     { id: "export", label: "Export Report", description: "Generate PDF report", icon: FileDown, category: "action", action: () => { onClose(); } },
-    { id: "new-case", label: "New Case", description: "Start a fresh project (clears data)", icon: FilePlus, category: "action", action: () => { onNewCase?.(); onClose(); } },
-    { id: "save-case", label: "Save Case", description: "Download project as JSON file", icon: Save, category: "action", action: () => { onSaveCase?.(); onClose(); } },
-    { id: "load-case", label: "Load Case", description: "Open a saved JSON project file", icon: FolderOpen, category: "action", action: () => { fileInputRef.current?.click(); onClose(); } },
+    { id: "duplicate-case", label: "Duplicate Case", description: "Copy current case to a new one", icon: FilePlus, category: "action", action: () => { onNewCase?.(); onClose(); } },
+    { id: "save-workspace", label: "Save Workspace", description: "Download workspace as JSON file", icon: Save, category: "action", action: () => { onSaveCase?.(); onClose(); } },
+    { id: "load-workspace", label: "Load Workspace", description: "Open a saved JSON workspace file", icon: FolderOpen, category: "action", action: () => { fileInputRef.current?.click(); onClose(); } },
   ], [onNavigate, onClose, onRunCalculation, onNewCase, onSaveCase]);
 
   const filtered = useMemo(() => {

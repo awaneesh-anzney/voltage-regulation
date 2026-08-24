@@ -160,7 +160,7 @@ export function ReportExport({ inputs, results }: ReportExportProps) {
             visibility: visible;
           }
           #report-print-area {
-            position: absolute;
+            position: relative !important;
             left: 0;
             top: 0;
             width: 100%;
@@ -168,24 +168,23 @@ export function ReportExport({ inputs, results }: ReportExportProps) {
             color: black !important;
           }
           
-          /* FIX FOR 1-PAGE ONLY PRINTING */
+          /* FIX FOR 1-PAGE ONLY PRINTING & LANDSCAPE */
+          @page {
+            size: A4 landscape;
+            margin: 12mm 15mm;
+          }
+          
           html, body, main, section, div {
             height: auto !important;
             min-height: auto !important;
             max-height: none !important;
             overflow: visible !important;
-            position: static !important;
           }
 
-          #report-print-area {
-             position: absolute !important;
-             left: 0;
-             top: 0;
-          }
-          
-          @page {
-            size: A4;
-            margin: 20mm 20mm;
+          /* Prevent breaking inside tables/blocks */
+          .pdf-table, .calc-block, .result-block {
+            break-inside: avoid;
+            page-break-inside: avoid;
           }
           
           .page-break {
