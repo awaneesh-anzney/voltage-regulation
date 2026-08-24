@@ -54,14 +54,14 @@ export function EquationTrace({ results }: EquationTraceProps) {
   ];
 
   return (
-    <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-white/[0.04]">
-        <h3 className="text-[13px] font-semibold text-white uppercase tracking-wider">IEC 60865-1 — Full Equation Trace</h3>
-        <p className="text-[11px] text-slate-400 mt-1">Step-by-step intermediate variables and formulae.</p>
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-border">
+        <h3 className="text-[13px] font-semibold text-foreground uppercase tracking-wider">IEC 60865-1 — Full Equation Trace</h3>
+        <p className="text-[11px] text-muted-foreground mt-1">Step-by-step intermediate variables and formulae.</p>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-[12px] text-left">
-          <thead className="bg-slate-900/50 text-slate-400">
+          <thead className="bg-accent/50 text-muted-foreground">
             <tr>
               <th className="px-5 py-3 font-medium">#</th>
               <th className="px-5 py-3 font-medium">Parameter</th>
@@ -74,12 +74,12 @@ export function EquationTrace({ results }: EquationTraceProps) {
             {rows.map((row) => (
               <tr key={row.num} className="hover:bg-white/[0.02]">
                 <td className="px-5 py-2.5 text-slate-500 font-mono">{row.num}</td>
-                <td className="px-5 py-2.5 text-slate-300">{row.param}</td>
+                <td className="px-5 py-2.5 text-muted-foreground">{row.param}</td>
                 <td className="px-5 py-2.5">
-                  <div className="bg-[#0a0f18] px-2 py-1 rounded border border-white/[0.05] inline-block font-mono text-[11px] text-blue-300" dangerouslySetInnerHTML={{ __html: row.html }} />
+                  <div className="bg-background px-2 py-1 rounded border border-border inline-block font-mono text-[11px] text-blue-300" dangerouslySetInnerHTML={{ __html: row.html }} />
                 </td>
-                <td className="px-5 py-2.5 text-white font-mono">{row.val}</td>
-                <td className="px-5 py-2.5 text-slate-400">{row.ref}</td>
+                <td className="px-5 py-2.5 text-foreground font-mono">{row.val}</td>
+                <td className="px-5 py-2.5 text-muted-foreground">{row.ref}</td>
               </tr>
             ))}
           </tbody>

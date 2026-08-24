@@ -13,10 +13,10 @@ function BentoCard({ title, children, className, span }: {
   span?: string;
 }) {
   return (
-    <div className={`bg-[#111827] border border-white/[0.06] rounded-2xl p-5 relative overflow-hidden group
+    <div className={`bg-card border border-border rounded-2xl p-5 relative overflow-hidden group
       hover:border-white/[0.1] transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.04)] ${span || ""} ${className || ""}`}>
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.15em] mb-3">{title}</h3>
+      <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-3">{title}</h3>
       {children}
     </div>
   );
@@ -86,7 +86,7 @@ function RadialGauge({ value, max, label, color }: { value: number; max: number;
           strokeDasharray={`${circumference * 0.75} ${circumference * 0.25}`}
           strokeDashoffset={dashOffset} strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1s ease' }} />
       </svg>
-      <div className="text-[10px] text-slate-500 mt-1">{label}</div>
+      <div className="text-[10px] text-muted-foreground mt-1">{label}</div>
     </div>
   );
 }
@@ -97,8 +97,8 @@ export function BentoHome() {
     <div className="p-6 space-y-4 max-w-7xl mx-auto">
       {/* Welcome Header */}
       <div className="mb-2">
-        <h1 className="text-xl font-bold text-white tracking-tight">Dashboard Overview</h1>
-        <p className="text-[13px] text-slate-500 mt-1">Complete power system analysis at a glance</p>
+        <h1 className="text-xl font-bold text-foreground tracking-tight">Dashboard Overview</h1>
+        <p className="text-[13px] text-muted-foreground mt-1">Complete power system analysis at a glance</p>
       </div>
 
       {/* Row 1: SLD + KPIs */}
@@ -106,7 +106,7 @@ export function BentoHome() {
         {/* SLD Hero Card */}
         <BentoCard title="Single Line Diagram" span="lg:col-span-2 lg:row-span-2">
           <MiniSLD />
-          <div className="text-[11px] text-slate-600 mt-2 font-mono">3 buses · 2 transformers · 1 line</div>
+          <div className="text-[11px] text-muted-foreground/80 mt-2 font-mono">3 buses · 2 transformers · 1 line</div>
         </BentoCard>
 
         {/* Fault Level */}
@@ -114,7 +114,7 @@ export function BentoHome() {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-[28px] font-mono font-bold text-blue-400">45.2</div>
-              <div className="text-[11px] text-slate-500 font-mono">kA (3-phase)</div>
+              <div className="text-[11px] text-muted-foreground font-mono">kA (3-phase)</div>
             </div>
             <RadialGauge value={45.2} max={100} label="45% cap" color="#3b82f6" />
           </div>
@@ -127,7 +127,7 @@ export function BentoHome() {
         {/* SC Forces */}
         <BentoCard title="SC Forces Status">
           <div className="text-[32px] font-mono font-bold text-emerald-400">PASS</div>
-          <div className="text-[12px] text-slate-500 mt-1 font-mono">F_max = 42.1 kN</div>
+          <div className="text-[12px] text-muted-foreground mt-1 font-mono">F_max = 42.1 kN</div>
           <div className="mt-3 space-y-1.5">
             {[
               { label: "F_st", pct: 30, color: "#3b82f6" },
@@ -135,8 +135,8 @@ export function BentoHome() {
               { label: "F_fd", pct: 100, color: "#ef4444" },
             ].map((bar) => (
               <div key={bar.label} className="flex items-center gap-2">
-                <span className="text-[9px] text-slate-500 font-mono w-6">{bar.label}</span>
-                <div className="flex-1 h-1.5 bg-[#0a0f18] rounded-full overflow-hidden">
+                <span className="text-[9px] text-muted-foreground font-mono w-6">{bar.label}</span>
+                <div className="flex-1 h-1.5 bg-card rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-700" style={{ width: `${bar.pct}%`, background: bar.color }} />
                 </div>
               </div>
@@ -151,14 +151,14 @@ export function BentoHome() {
         <BentoCard title="Sag-Tension Summary">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[11px] text-slate-500 mb-0.5">Max Sag</div>
+              <div className="text-[11px] text-muted-foreground mb-0.5">Max Sag</div>
               <div className="text-[22px] font-mono font-bold text-amber-400">8.52 m</div>
-              <div className="text-[10px] text-slate-600 font-mono">at 75°C no-wind</div>
+              <div className="text-[10px] text-muted-foreground/80 font-mono">at 75°C no-wind</div>
             </div>
             <div>
-              <div className="text-[11px] text-slate-500 mb-0.5">Clearance</div>
+              <div className="text-[11px] text-muted-foreground mb-0.5">Clearance</div>
               <div className="text-[22px] font-mono font-bold text-emerald-400">17.98 m</div>
-              <div className="text-[10px] text-slate-600 font-mono">min req: 8.84 m</div>
+              <div className="text-[10px] text-muted-foreground/80 font-mono">min req: 8.84 m</div>
             </div>
           </div>
           {/* Mini catenary */}
@@ -181,7 +181,7 @@ export function BentoHome() {
               { label: "Compare Scenarios", icon: SlidersHorizontal, gradient: "from-teal-600 to-cyan-600" },
             ].map((action) => (
               <button key={action.label}
-                className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-semibold text-white bg-gradient-to-r ${action.gradient} hover:brightness-110 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 shadow-md`}
+                className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-semibold text-foreground bg-gradient-to-r ${action.gradient} hover:brightness-110 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 shadow-md`}
               >
                 <action.icon className="w-3.5 h-3.5" />
                 {action.label}
@@ -201,8 +201,8 @@ export function BentoHome() {
               <div key={i} className="flex items-start gap-2.5">
                 <div className={`mt-0.5 ${item.color}`}><item.icon className="w-3.5 h-3.5" /></div>
                 <div className="flex-1">
-                  <div className="text-[12px] text-slate-300">{item.text}</div>
-                  <div className="text-[10px] text-slate-600 font-mono">{item.time}</div>
+                  <div className="text-[12px] text-foreground/90">{item.text}</div>
+                  <div className="text-[10px] text-muted-foreground/80 font-mono">{item.time}</div>
                 </div>
               </div>
             ))}

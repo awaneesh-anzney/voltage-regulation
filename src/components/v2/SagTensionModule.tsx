@@ -24,7 +24,7 @@ function InputField({ label, value, unit, onChange, disabled }: {
 
   return (
     <div className="space-y-1">
-      <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">{label}</label>
+      <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</label>
       <div className="flex items-center gap-1.5">
         <input
           type={isNumber ? 'number' : 'text'}
@@ -55,7 +55,7 @@ function InputField({ label, value, unit, onChange, disabled }: {
               setLocalValue(String(parsed));
             }
           }}
-          className="flex-1 bg-[#0a0f18] border border-white/[0.06] rounded-lg px-3 py-2 text-[13px] text-white font-mono
+          className="flex-1 bg-card border border-border rounded-lg px-3 py-2 text-[13px] text-foreground font-mono
             focus:outline-none focus:border-teal-500/30 focus:ring-1 focus:ring-teal-500/20
             disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         />
@@ -77,12 +77,12 @@ function Section({ title, accent, defaultOpen, children }: {
     teal: "text-teal-400 bg-teal-500/8 border-teal-500/15",
     amber: "text-amber-400 bg-amber-500/8 border-amber-500/15",
     blue: "text-blue-400 bg-blue-500/8 border-blue-500/15",
-    slate: "text-slate-400 bg-slate-500/8 border-slate-500/15",
+    slate: "text-muted-foreground bg-slate-500/8 border-slate-500/15",
   };
   return (
     <div className="border-b border-white/[0.04] last:border-0">
       <button onClick={() => setOpen(!open)}
-        className={`w-full flex items-center gap-2 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:bg-white/[0.02] ${accentColors[accent] || accentColors.slate}`}>
+        className={`w-full flex items-center gap-2 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:hover:bg-accent/30 ${accentColors[accent] || accentColors.slate}`}>
         {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
         <span>{title}</span>
       </button>
@@ -104,19 +104,19 @@ export function SagTensionInspector({ inputs, onUpdateInputs }: {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="px-4 py-3 border-b border-white/[0.06] shrink-0">
-        <h3 className="text-[13px] font-bold text-white flex items-center gap-1.5">
+      <div className="px-4 py-3 border-b border-border shrink-0">
+        <h3 className="text-[13px] font-bold text-foreground flex items-center gap-1.5">
           <Settings2 className="w-4 h-4 text-teal-400" />
           Sag-Tension Parameters
         </h3>
-        <p className="text-[10px] text-slate-600 mt-0.5">IS 802 / IEC 60826</p>
+        <p className="text-[10px] text-muted-foreground/80 mt-0.5">IS 802 / IEC 60826</p>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar">
         <Section title="Conductor" accent="teal" defaultOpen>
           <div className="grid grid-cols-2 gap-2 mb-2">
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Type</label>
+              <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Type</label>
               <select
                 value={currentType}
                 onChange={(e) => {
@@ -133,13 +133,13 @@ export function SagTensionInspector({ inputs, onUpdateInputs }: {
                     });
                   }
                 }}
-                className="w-full bg-[#0a0f18] border border-white/[0.06] rounded-lg px-3 py-2 text-[13px] text-white focus:outline-none focus:border-teal-500/30 cursor-pointer"
+                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-[13px] text-foreground focus:outline-none focus:border-teal-500/30 cursor-pointer"
               >
                 {conductorTypes.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Name</label>
+              <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Name</label>
               <select
                 value={currentName}
                 onChange={(e) => {
@@ -158,7 +158,7 @@ export function SagTensionInspector({ inputs, onUpdateInputs }: {
                     onUpdateInputs({ conductorName: name }); // For custom names
                   }
                 }}
-                className="w-full bg-[#0a0f18] border border-white/[0.06] rounded-lg px-3 py-2 text-[13px] text-white focus:outline-none focus:border-teal-500/30 cursor-pointer"
+                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-[13px] text-foreground focus:outline-none focus:border-teal-500/30 cursor-pointer"
               >
                 {conductorsForType.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                 <option value="Custom">Custom...</option>
@@ -187,7 +187,7 @@ export function SagTensionInspector({ inputs, onUpdateInputs }: {
 
         <Section title="Loading (IS 802)" accent="blue">
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Wind Zone</label>
+            <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Wind Zone</label>
             <div className="grid grid-cols-4 gap-1">
               {[
                 { label: "I", pa: 240 }, { label: "II", pa: 390 },
@@ -197,7 +197,7 @@ export function SagTensionInspector({ inputs, onUpdateInputs }: {
                   className={`py-1.5 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
                     inputs.windPressure_Pa === z.pa
                       ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                      : "bg-white/[0.03] text-slate-500 border border-white/[0.06] hover:text-white"
+                      : "bg-accent/50 text-muted-foreground border border-border hover:text-foreground"
                   }`}>
                   Zone {z.label}
                 </button>
@@ -229,13 +229,13 @@ function KPI({ label, value, unit, status, sublabel }: {
     warn: "border-amber-500/20 bg-amber-500/5",
   };
   return (
-    <div className={`rounded-xl border p-4 ${status ? statusColors[status] : "border-white/[0.06] bg-[#111827]"}`}>
-      <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{label}</div>
+    <div className={`rounded-xl border p-4 ${status ? statusColors[status] : "border-border bg-card"}`}>
+      <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">{label}</div>
       <div className="mt-1 flex items-baseline gap-1">
-        <span className="text-[22px] font-mono font-bold text-white">{value}</span>
-        <span className="text-[11px] text-slate-500 font-mono">{unit}</span>
+        <span className="text-[22px] font-mono font-bold text-foreground">{value}</span>
+        <span className="text-[11px] text-muted-foreground font-mono">{unit}</span>
       </div>
-      {sublabel && <div className="text-[10px] text-slate-600 mt-0.5 font-mono">{sublabel}</div>}
+      {sublabel && <div className="text-[10px] text-muted-foreground/80 mt-0.5 font-mono">{sublabel}</div>}
       {status && (
         <div className={`flex items-center gap-1 mt-2 text-[10px] font-semibold ${
           status === "pass" ? "text-emerald-400" : status === "fail" ? "text-red-400" : "text-amber-400"
@@ -276,11 +276,11 @@ export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Cable className="w-5 h-5 text-teal-500" />
             Sag-Tension Analysis
           </h1>
-          <p className="text-[13px] text-slate-400 mt-1.5">
+          <p className="text-[13px] text-muted-foreground mt-1.5">
             IS 802 / IEC 60826 catenary sag-tension with change-of-state equation
           </p>
         </div>
@@ -295,7 +295,7 @@ export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
       </div>
 
       {/* Info Strip */}
-      <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500/[0.06] border border-teal-500/15 text-[12px] text-slate-300">
+      <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500/[0.06] border border-teal-500/15 text-[12px] text-foreground/90">
         <Cable className="w-4 h-4 text-teal-400 shrink-0" />
         <span className="font-mono">
           {inputs.conductorName} · {inputs.span_m} m span · Wind: {inputs.windPressure_Pa} Pa · Ref: {inputs.refTemp_C}°C @ {inputs.initialTension_pctUTS}% UTS
@@ -333,7 +333,7 @@ export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
       </div>
 
       {/* Sub-Tab Navigation */}
-      <div className="flex gap-1 bg-[#111827] p-1 rounded-xl border border-white/[0.06] overflow-x-auto no-scrollbar">
+      <div className="flex gap-1 bg-card p-1 rounded-xl border border-border overflow-x-auto no-scrollbar">
         {[
           { id: "results" as const, label: "Sag-Tension Table", icon: BarChart3 },
           { id: "profile" as const, label: "Catenary Profile", icon: Cable },
@@ -341,7 +341,7 @@ export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
         ].map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-medium transition-all cursor-pointer whitespace-nowrap ${
-              tab === t.id ? "bg-white/[0.08] text-white shadow-sm" : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]"
+              tab === t.id ? "bg-white/[0.08] text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground/90 hover:bg-accent/50"
             }`}>
             <t.icon className="w-3.5 h-3.5" />{t.label}
           </button>
@@ -350,26 +350,26 @@ export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
 
       {/* Table */}
       {tab === "results" && (
-        <div className="bg-[#111827] rounded-2xl border border-white/[0.06] overflow-hidden">
+        <div className="bg-card rounded-2xl border border-border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-[12px]">
               <thead>
-                <tr className="bg-[#0a0f18]">
+                <tr className="bg-card">
                   {["Temp (°C)", "Condition", "Tension (kg)", "% UTS", "Sag (m)", "Sag Para (m)", "Clearance (m)", "Status"].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">{h}</th>
+                    <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {results.sagTable.map((row, i) => (
                   <tr key={i} className={`border-t border-white/[0.04] ${row.condition === "Full Wind" ? "bg-blue-500/[0.03]" : ""}`}>
-                    <td className="px-4 py-2.5 font-mono text-white font-semibold">{row.temperature_C}</td>
-                    <td className="px-4 py-2.5 text-slate-400">{row.condition}</td>
-                    <td className="px-4 py-2.5 font-mono text-white">{row.tension_kg.toFixed(1)}</td>
-                    <td className="px-4 py-2.5 font-mono text-slate-400">{row.tension_pctUTS.toFixed(1)}%</td>
+                    <td className="px-4 py-2.5 font-mono text-foreground font-semibold">{row.temperature_C}</td>
+                    <td className="px-4 py-2.5 text-muted-foreground">{row.condition}</td>
+                    <td className="px-4 py-2.5 font-mono text-foreground">{row.tension_kg.toFixed(1)}</td>
+                    <td className="px-4 py-2.5 font-mono text-muted-foreground">{row.tension_pctUTS.toFixed(1)}%</td>
                     <td className="px-4 py-2.5 font-mono text-amber-300">{row.sag_m.toFixed(3)}</td>
-                    <td className="px-4 py-2.5 font-mono text-slate-500">{row.sag_parabolic_m.toFixed(3)}</td>
-                    <td className="px-4 py-2.5 font-mono text-white">{row.clearance_m.toFixed(2)}</td>
+                    <td className="px-4 py-2.5 font-mono text-muted-foreground">{row.sag_parabolic_m.toFixed(3)}</td>
+                    <td className="px-4 py-2.5 font-mono text-foreground">{row.clearance_m.toFixed(2)}</td>
                     <td className="px-4 py-2.5">
                       {row.clearance_ok
                         ? <span className="text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" />OK</span>
@@ -386,7 +386,7 @@ export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
 
       {/* Catenary Profile SVG */}
       {tab === "profile" && (
-        <div className="bg-[#111827] rounded-2xl border border-white/[0.06] p-6">
+        <div className="bg-card rounded-2xl border border-border p-6">
           <svg viewBox={`-20 -20 ${inputs.span_m + 40} ${(results.maxSag_m * 1.8) + 60}`} className="w-full" style={{ minHeight: 300 }}>
             <defs>
               <linearGradient id="sagGrad" x1="0" y1="0" x2="0" y2="1">
@@ -431,13 +431,13 @@ export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
       {/* Temperature Sweep Chart */}
       {tab === "sweep" && (() => {
         const noWindRows = results.sagTable.filter(r => r.condition === "No Wind");
-        if (noWindRows.length === 0) return <div className="text-slate-500 text-sm">No data</div>;
+        if (noWindRows.length === 0) return <div className="text-muted-foreground text-sm">No data</div>;
         const maxSag = Math.max(...noWindRows.map(r => r.sag_m));
         const maxTen = Math.max(...noWindRows.map(r => r.tension_kg));
         const W = 700, H = 300, PL = 60, PR = 60, PT = 20, PB = 40;
 
         return (
-          <div className="bg-[#111827] rounded-2xl border border-white/[0.06] p-6">
+          <div className="bg-card rounded-2xl border border-border p-6">
             <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minHeight: 280 }}>
               {/* Axes */}
               <line x1={PL} y1={PT} x2={PL} y2={H - PB} stroke="#334155" strokeWidth="1" />

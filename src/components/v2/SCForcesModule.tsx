@@ -36,12 +36,12 @@ function InputField({ label, value, unit, onChange, linked, linkSource, disabled
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-1.5">
-        <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">{label}</label>
+        <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</label>
         {linked && (
           <div className="group relative">
             <Link2 className="w-3 h-3 text-teal-400" />
             {linkSource && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-800 border border-white/10 rounded-md text-[10px] text-teal-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-popover border border-border rounded-md text-[10px] text-teal-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                 Linked from {linkSource}
               </div>
             )}
@@ -78,7 +78,7 @@ function InputField({ label, value, unit, onChange, linked, linkSource, disabled
               setLocalValue(String(parsed));
             }
           }}
-          className="flex-1 bg-[#0a0f18] border border-white/[0.06] rounded-lg px-3 py-2 text-[13px] text-white font-mono
+          className="flex-1 bg-card border border-border rounded-lg px-3 py-2 text-[13px] text-foreground font-mono
             focus:outline-none focus:border-blue-500/30 focus:ring-1 focus:ring-blue-500/20
             disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         />
@@ -105,12 +105,12 @@ function SelectField({ label, value, options, unit, onChange, linked, linkSource
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-1.5">
-        <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">{label}</label>
+        <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</label>
         {linked && (
           <div className="group relative">
             <Link2 className="w-3 h-3 text-teal-400" />
             {linkSource && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-800 border border-white/10 rounded-md text-[10px] text-teal-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-popover border border-border rounded-md text-[10px] text-teal-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                 Linked from {linkSource}
               </div>
             )}
@@ -122,7 +122,7 @@ function SelectField({ label, value, options, unit, onChange, linked, linkSource
           value={value}
           disabled={disabled}
           onChange={(e) => onChange(e.target.value)}
-          className={`flex-1 min-w-0 bg-[#0a0f18] border border-white/[0.06] rounded-lg px-3 py-2 text-[13px] font-mono text-white focus:outline-none focus:border-blue-500/30 transition-colors ${
+          className={`flex-1 min-w-0 bg-card border border-border rounded-lg px-3 py-2 text-[13px] font-mono text-foreground focus:outline-none focus:border-blue-500/30 transition-colors ${
             disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
           }`}
         >
@@ -130,7 +130,7 @@ function SelectField({ label, value, options, unit, onChange, linked, linkSource
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
-        {unit && <span className="text-[11px] font-semibold text-slate-500 px-2 py-1 bg-white/[0.03] rounded-md">{unit}</span>}
+        {unit && <span className="text-[11px] font-semibold text-muted-foreground px-2 py-1 bg-accent/50 rounded-md">{unit}</span>}
       </div>
       {iecRef && <IECRef clause={iecRef.clause} description={iecRef.desc} />}
     </div>
@@ -147,12 +147,12 @@ function Section({ title, accent, defaultOpen, children }: {
     teal: "text-teal-400 bg-teal-500/8 border-teal-500/15",
     amber: "text-amber-400 bg-amber-500/8 border-amber-500/15",
     purple: "text-purple-400 bg-purple-500/8 border-purple-500/15",
-    slate: "text-slate-400 bg-slate-500/8 border-slate-500/15",
+    slate: "text-muted-foreground bg-slate-500/8 border-slate-500/15",
   };
   return (
     <div className="border-b border-white/[0.04] last:border-0">
       <button onClick={() => setOpen(!open)}
-        className={`w-full flex items-center gap-2 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:bg-white/[0.02] ${accentColors[accent] || accentColors.slate}`}>
+        className={`w-full flex items-center gap-2 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:hover:bg-accent/30 ${accentColors[accent] || accentColors.slate}`}>
         {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
         <span>{title}</span>
       </button>
@@ -178,12 +178,12 @@ export function SCForcesInspector({ inputs, onUpdate, onUpdateInputs, onCalculat
   const currentName = inputs.conductorName.split(' ').slice(1).join(' ') || inputs.conductorName;
   return (
     <div className="h-full flex flex-col">
-      <div className="px-4 py-3 border-b border-white/[0.06] shrink-0">
-        <h3 className="text-[13px] font-bold text-white flex items-center gap-1.5">
+      <div className="px-4 py-3 border-b border-border shrink-0">
+        <h3 className="text-[13px] font-bold text-foreground flex items-center gap-1.5">
           <Settings2 className="w-4 h-4 text-blue-400" />
           SC Forces Parameters
         </h3>
-        <p className="text-[10px] text-slate-600 mt-0.5">IEC 60865-1 / IEC 61936-1</p>
+        <p className="text-[10px] text-muted-foreground/80 mt-0.5">IEC 60865-1 / IEC 61936-1</p>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar">
@@ -223,7 +223,7 @@ export function SCForcesInspector({ inputs, onUpdate, onUpdateInputs, onCalculat
         <Section title="Conductor" accent="teal">
           <div className="grid grid-cols-2 gap-2 mb-2">
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Type</label>
+              <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Type</label>
               <select
                 value={currentType}
                 onChange={(e) => {
@@ -237,13 +237,13 @@ export function SCForcesInspector({ inputs, onUpdate, onUpdateInputs, onCalculat
                     });
                   }
                 }}
-                className="w-full bg-[#0a0f18] border border-white/[0.06] rounded-lg px-3 py-2 text-[13px] text-white focus:outline-none focus:border-teal-500/30 cursor-pointer"
+                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-[13px] text-foreground focus:outline-none focus:border-teal-500/30 cursor-pointer"
               >
                 {conductorTypes.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Name</label>
+              <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Name</label>
               <select
                 value={currentName}
                 onChange={(e) => {
@@ -259,7 +259,7 @@ export function SCForcesInspector({ inputs, onUpdate, onUpdateInputs, onCalculat
                     onUpdate("conductorName", name); // For custom names
                   }
                 }}
-                className="w-full bg-[#0a0f18] border border-white/[0.06] rounded-lg px-3 py-2 text-[13px] text-white focus:outline-none focus:border-teal-500/30 cursor-pointer"
+                className="w-full bg-card border border-border rounded-lg px-3 py-2 text-[13px] text-foreground focus:outline-none focus:border-teal-500/30 cursor-pointer"
               >
                 {conductorsForType.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                 <option value="Custom">Custom...</option>
@@ -307,12 +307,12 @@ export function SCForcesInspector({ inputs, onUpdate, onUpdateInputs, onCalculat
           <InputField label="Dropper Height h_drop" value={inputs.h_drop} unit="m" onChange={(v) => onUpdate("h_drop", v as number)} />
           <InputField label="Dropper Spacing w_drop" value={inputs.w_drop} unit="m" onChange={(v) => onUpdate("w_drop", v as number)} />
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Dropper Plane</label>
-            <div className="flex bg-[#0a0f18] border border-white/[0.06] rounded-lg p-1">
+            <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Dropper Plane</label>
+            <div className="flex bg-card border border-border rounded-lg p-1">
               <button
                 onClick={() => onUpdate("dropperPlane", "perpendicular")}
                 className={`flex-1 py-1 text-[11px] font-semibold rounded-md transition-all ${
-                  inputs.dropperPlane === 'perpendicular' ? 'bg-purple-500/20 text-purple-300' : 'text-slate-500 hover:text-white'
+                  inputs.dropperPlane === 'perpendicular' ? 'bg-purple-500/20 text-purple-300' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Perpendicular
@@ -320,7 +320,7 @@ export function SCForcesInspector({ inputs, onUpdate, onUpdateInputs, onCalculat
               <button
                 onClick={() => onUpdate("dropperPlane", "parallel")}
                 className={`flex-1 py-1 text-[11px] font-semibold rounded-md transition-all ${
-                  inputs.dropperPlane === 'parallel' ? 'bg-purple-500/20 text-purple-300' : 'text-slate-500 hover:text-white'
+                  inputs.dropperPlane === 'parallel' ? 'bg-purple-500/20 text-purple-300' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Parallel
@@ -337,9 +337,9 @@ export function SCForcesInspector({ inputs, onUpdate, onUpdateInputs, onCalculat
       </div>
 
       {/* Calculate Button */}
-      <div className="p-3 border-t border-white/[0.06] shrink-0">
+      <div className="p-3 border-t border-border shrink-0">
         <button onClick={onCalculate}
-          className="w-full py-3 rounded-xl text-[13px] font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
+          className="w-full py-3 rounded-xl text-[13px] font-bold text-foreground bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
           <Zap className="w-4 h-4" />
           Calculate SC Forces
         </button>
@@ -349,14 +349,13 @@ export function SCForcesInspector({ inputs, onUpdate, onUpdateInputs, onCalculat
 }
 
 // ─── Center Canvas Content ───
-type CanvasTab = "results" | "trace" | "visual" | "whatif" | "report";
+type CanvasTab = "results" | "trace" | "visual" | "whatif";
 
 const CANVAS_TABS: { id: CanvasTab; label: string; icon: React.ElementType }[] = [
   { id: "results", label: "Results",        icon: BarChart3 },
   { id: "trace",   label: "Equation Trace", icon: FileText },
   { id: "visual",  label: "Visualisation",  icon: LineChart },
   { id: "whatif",  label: "What-If",        icon: SlidersHorizontal },
-  { id: "report",  label: "Report",         icon: Download },
 ];
 
 export function SCForcesCanvas({ inputs, results }: { inputs: SCInputs; results: SCResults }) {
@@ -366,17 +365,17 @@ export function SCForcesCanvas({ inputs, results }: { inputs: SCInputs; results:
     <div className="p-6 space-y-5 max-w-7xl mx-auto pb-20">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+        <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <ShieldAlert className="w-5 h-5 text-blue-500" />
           Short-Circuit Mechanical Forces
         </h1>
-        <p className="text-[13px] text-slate-400 mt-1.5 max-w-2xl">
+        <p className="text-[13px] text-muted-foreground mt-1.5 max-w-2xl">
           IEC 60865-1 / IEC 61936-1 compliant analysis for flexible conductors. Structural consequence analysis of fault currents on transmission line spans.
         </p>
       </div>
 
       {/* Info Strip */}
-      <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-500/[0.06] border border-blue-500/15 text-[12px] text-slate-300">
+      <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-500/[0.06] border border-blue-500/15 text-[12px] text-foreground/90">
         <ShieldAlert className="w-4 h-4 text-blue-400 shrink-0" />
         <span className="font-mono">
           {inputs.conductorName} {inputs.nc > 1 ? `${inputs.nc}-bundle` : "single"} · {inputs.vsys / 1000} kV · {(inputs.ik3 / 1000).toFixed(1)} kA · {inputs.lspan} m span
@@ -384,8 +383,8 @@ export function SCForcesCanvas({ inputs, results }: { inputs: SCInputs; results:
       </div>
 
       {/* Trust Summary Panel */}
-      <div className="bg-[#111827] border border-white/[0.06] rounded-2xl p-4">
-        <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.12em] mb-3">Key Results — Trust Indicators</h3>
+      <div className="bg-card border border-border rounded-2xl p-4">
+        <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.12em] mb-3">Key Results — Trust Indicators</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {[
             { key: "Fmax", label: "F_max", val: (results.Fmax / 1000).toFixed(2), unit: "kN" },
@@ -399,8 +398,8 @@ export function SCForcesCanvas({ inputs, results }: { inputs: SCInputs; results:
             { key: "amin", label: "a_min", val: results.amin.toFixed(3), unit: "m" },
             { key: "clCheck", label: "Clearance", val: results.clCheck ? "PASS" : "FAIL", unit: "" },
           ].map(item => (
-            <div key={item.key} className="bg-[#0a0f18] rounded-xl p-3 border border-white/[0.04]">
-              <div className="text-[10px] text-slate-600 uppercase tracking-wider font-bold mb-1">{item.label}</div>
+            <div key={item.key} className="bg-card rounded-xl p-3 border border-white/[0.04]">
+              <div className="text-[10px] text-muted-foreground/80 uppercase tracking-wider font-bold mb-1">{item.label}</div>
               <TrustIndicator
                 badge={SC_FORCES_TRUST[item.key]}
                 value={item.val}
@@ -424,13 +423,13 @@ export function SCForcesCanvas({ inputs, results }: { inputs: SCInputs; results:
       )}
 
       {/* Sub-tab Navigation */}
-      <div className="flex gap-1 bg-[#111827] p-1 rounded-xl border border-white/[0.06] w-full overflow-x-auto no-scrollbar">
+      <div className="flex gap-1 bg-card p-1 rounded-xl border border-border w-full overflow-x-auto no-scrollbar">
         {CANVAS_TABS.map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-medium transition-all cursor-pointer whitespace-nowrap ${
               tab === t.id
-                ? "bg-white/[0.08] text-white shadow-sm"
-                : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]"
+                ? "bg-white/[0.08] text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground/90 hover:bg-accent/50"
             }`}>
             <t.icon className="w-3.5 h-3.5" />
             {t.label}
@@ -443,7 +442,6 @@ export function SCForcesCanvas({ inputs, results }: { inputs: SCInputs; results:
       {tab === "trace" && <EquationTrace results={results} />}
       {tab === "visual" && <GraphsPanel inputs={inputs} results={results} />}
       {tab === "whatif" && <WhatIfPanel baseInputs={inputs} baseResults={results} />}
-      {tab === "report" && <ReportExport inputs={inputs} results={results} />}
     </div>
   );
 }

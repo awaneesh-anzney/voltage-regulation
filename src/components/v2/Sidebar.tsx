@@ -81,59 +81,46 @@ export function Sidebar({ activeModule, onModuleChange, collapsed, onToggle }: S
   };
 
   const accentMap: Record<string, string> = {
-    blue: "border-blue-500 bg-blue-500/10 text-blue-400",
-    teal: "border-teal-500 bg-teal-500/10 text-teal-400",
-    purple: "border-purple-500 bg-purple-500/10 text-purple-400",
+    blue: "border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400",
+    teal: "border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400",
+    purple: "border-purple-500 bg-purple-500/10 text-purple-600 dark:text-purple-400",
   };
 
   const hoverAccentMap: Record<string, string> = {
-    blue: "hover:bg-blue-500/5 hover:text-blue-300",
-    teal: "hover:bg-teal-500/5 hover:text-teal-300",
-    purple: "hover:bg-purple-500/5 hover:text-purple-300",
+    blue: "hover:bg-blue-500/5 hover:text-blue-700 dark:hover:text-blue-300",
+    teal: "hover:bg-teal-500/5 hover:text-teal-700 dark:hover:text-teal-300",
+    purple: "hover:bg-purple-500/5 hover:text-purple-700 dark:hover:text-purple-300",
+  };
+
+  const groupHeaderColorMap: Record<string, string> = {
+    blue: "text-blue-600 dark:text-blue-500",
+    teal: "text-teal-600 dark:text-teal-500",
+    purple: "text-purple-600 dark:text-purple-500",
   };
 
   return (
     <div
-      className={`h-full flex flex-col border-r border-white/[0.06] bg-[#0c1220] transition-all duration-300 ${
-        collapsed ? "w-[52px]" : "w-[240px]"
+      className={`h-full flex flex-col border-r border-border bg-background transition-all duration-300 ${
+        collapsed ? "w-[64px]" : "w-[240px]"
       }`}
     >
-      {/* Logo & Toggle */}
-      <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} px-3 h-14 border-b border-white/[0.06] shrink-0`}>
-        {!collapsed && (
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center shrink-0">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <div className="flex items-center gap-2 overflow-hidden">
-              <span className="text-[15px] font-bold text-white tracking-tight">GridIntel</span>
-              <span className="text-[9px] font-bold text-blue-400 bg-blue-500/15 px-1.5 py-0.5 rounded-md uppercase tracking-widest">v2</span>
-            </div>
-          </div>
-        )}
-        <button
-          onClick={onToggle}
-          className="p-1.5 rounded-md text-slate-500 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? <PanelLeft className="w-4 h-4 shrink-0" /> : <PanelLeftClose className="w-4 h-4 shrink-0" />}
-        </button>
-      </div>
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-3 px-2 space-y-1 no-scrollbar">
         {/* Home */}
-        <button
-          onClick={() => onModuleChange("home")}
-          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all cursor-pointer ${
-            activeModule === "home"
-              ? "border-l-2 border-blue-500 bg-blue-500/10 text-white"
-              : "text-slate-400 hover:bg-white/[0.04] hover:text-white border-l-2 border-transparent"
-          }`}
-        >
+        <div className="pt-2">
+          <button
+            onClick={() => onModuleChange("home")}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all cursor-pointer ${
+              activeModule === "home"
+                ? "border-l-2 border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                : "text-muted-foreground hover:bg-accent/60 hover:text-foreground border-l-2 border-transparent"
+            }`}
+          >
           <Home className="w-4 h-4 shrink-0" />
           {!collapsed && <span>Home</span>}
-        </button>
+          </button>
+        </div>
 
         {/* Grouped Navigation */}
         {NAV_GROUPS.map((group) => (
@@ -142,13 +129,13 @@ export function Sidebar({ activeModule, onModuleChange, collapsed, onToggle }: S
             {!collapsed ? (
               <button
                 onClick={() => toggleGroup(group.label)}
-                className="w-full flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                className={`w-full flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider ${groupHeaderColorMap[group.accent]} hover:opacity-80 transition-opacity cursor-pointer`}
               >
-                <span>{group.emoji}</span>
+                <span className="text-[12px]">{group.emoji}</span>
                 <span className="flex-1 text-left">{group.label}</span>
                 {expandedGroups[group.label]
-                  ? <ChevronDown className="w-3 h-3" />
-                  : <ChevronRight className="w-3 h-3" />
+                  ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/60" />
+                  : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/60" />
                 }
               </button>
             ) : (
@@ -168,10 +155,10 @@ export function Sidebar({ activeModule, onModuleChange, collapsed, onToggle }: S
                       title={collapsed ? item.label : undefined}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all ${
                         item.comingSoon
-                          ? "text-slate-600 cursor-not-allowed opacity-50"
+                          ? "text-muted-foreground/80 cursor-not-allowed opacity-50"
                           : isActive
                             ? `border-l-2 ${accentMap[group.accent]}`
-                            : `border-l-2 border-transparent text-slate-400 ${hoverAccentMap[group.accent]} cursor-pointer`
+                            : `border-l-2 border-transparent text-muted-foreground ${hoverAccentMap[group.accent]} cursor-pointer`
                       }`}
                     >
                       <item.icon className="w-4 h-4 shrink-0" />
@@ -179,7 +166,7 @@ export function Sidebar({ activeModule, onModuleChange, collapsed, onToggle }: S
                         <>
                           <span className="flex-1 text-left truncate">{item.label}</span>
                           {item.comingSoon && (
-                            <span className="text-[8px] font-bold text-slate-500 bg-white/[0.04] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                            <span className="text-[8px] font-bold text-muted-foreground bg-accent/60 px-1.5 py-0.5 rounded uppercase tracking-wider">
                               Soon
                             </span>
                           )}
@@ -194,13 +181,54 @@ export function Sidebar({ activeModule, onModuleChange, collapsed, onToggle }: S
         ))}
       </div>
 
-      {/* Bottom */}
-      <div className="border-t border-white/[0.06] p-2 shrink-0">
-        <button className="w-full flex items-center justify-center gap-2.5 p-2 rounded-lg text-slate-500 hover:text-white hover:bg-white/[0.04] transition-all cursor-pointer">
-          <Settings className="w-4 h-4 shrink-0" />
-          {!collapsed && <span className="text-[12px] flex-1 text-left">Settings</span>}
-        </button>
+      {/* Bottom Profile Area */}
+      <div className="border-t border-border p-3 shrink-0 flex items-center justify-between">
+        {!collapsed && (
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center shrink-0">
+              <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">AK</span>
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-[12px] font-bold text-foreground truncate">A. Khan</span>
+              <span className="text-[10px] text-muted-foreground truncate">Lead Engineer</span>
+            </div>
+          </div>
+        )}
+        {collapsed && (
+          <div className="w-full flex justify-center">
+            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+              <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">AK</span>
+            </div>
+          </div>
+        )}
+        
+        {!collapsed && (
+          <div className="flex items-center gap-0.5 shrink-0">
+            <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-all cursor-pointer">
+              <Settings className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onToggle}
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-all cursor-pointer"
+              title="Collapse sidebar"
+            >
+              <PanelLeftClose className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
+
+      {collapsed && (
+        <div className="p-2 flex justify-center pb-4">
+          <button
+            onClick={onToggle}
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-all cursor-pointer"
+            title="Expand sidebar"
+          >
+            <PanelLeft className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

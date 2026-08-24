@@ -76,23 +76,23 @@ export function ContingencyCanvas({ buses, branches, baseMva }: {
     <div className="p-6 space-y-5 max-w-7xl mx-auto pb-20">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+        <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Shield className="w-5 h-5 text-blue-500" />
           N-1 Contingency Analysis
         </h1>
-        <p className="text-[13px] text-slate-400 mt-1.5 max-w-2xl">
+        <p className="text-[13px] text-muted-foreground mt-1.5 max-w-2xl">
           Single outage reliability assessment. Simulates removal of each branch and checks if the remaining network can sustain load within voltage limits (±10% p.u.).
         </p>
       </div>
 
       {/* Info + Run */}
       <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-blue-500/[0.06] border border-blue-500/15">
-        <div className="text-[12px] text-slate-300 font-mono">
+        <div className="text-[12px] text-foreground/90 font-mono">
           {buses.length} Buses · {branches.length} Branches · {branches.length} Contingency Cases
         </div>
         <button onClick={runContingency}
           disabled={isRunning || branches.length === 0}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-blue-500/20">
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold text-foreground bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-blue-500/20">
           <Play className="w-3.5 h-3.5" />
           {isRunning ? "Running..." : "Run N-1 Analysis"}
         </button>
@@ -102,7 +102,7 @@ export function ContingencyCanvas({ buses, branches, baseMva }: {
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <Shield className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-            <p className="text-slate-500 text-[13px]">Configure network in <span className="text-blue-400 font-semibold">Load Flow</span> module, then click <span className="text-blue-400 font-semibold">Run N-1 Analysis</span></p>
+            <p className="text-muted-foreground text-[13px]">Configure network in <span className="text-blue-400 font-semibold">Load Flow</span> module, then click <span className="text-blue-400 font-semibold">Run N-1 Analysis</span></p>
           </div>
         </div>
       )}
@@ -111,41 +111,41 @@ export function ContingencyCanvas({ buses, branches, baseMva }: {
         <>
           {/* Summary KPIs */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4">
-              <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Total Cases</div>
-              <div className="text-[24px] font-mono font-bold mt-1 text-white">{cases.length}</div>
+            <div className="bg-card border border-border rounded-xl p-4">
+              <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Total Cases</div>
+              <div className="text-[24px] font-mono font-bold mt-1 text-foreground">{cases.length}</div>
             </div>
-            <div className="bg-[#111827] border border-emerald-500/15 rounded-xl p-4">
-              <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">N-1 Secure</div>
+            <div className="bg-card border border-emerald-500/15 rounded-xl p-4">
+              <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">N-1 Secure</div>
               <div className="text-[24px] font-mono font-bold mt-1 text-emerald-400">{passCount}</div>
-              <div className="text-[11px] text-slate-500 mt-0.5">{((passCount / cases.length) * 100).toFixed(0)}% pass rate</div>
+              <div className="text-[11px] text-muted-foreground mt-0.5">{((passCount / cases.length) * 100).toFixed(0)}% pass rate</div>
             </div>
-            <div className="bg-[#111827] border border-red-500/15 rounded-xl p-4">
-              <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Violations</div>
+            <div className="bg-card border border-red-500/15 rounded-xl p-4">
+              <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Violations</div>
               <div className={`text-[24px] font-mono font-bold mt-1 ${failCount > 0 ? 'text-red-400' : 'text-emerald-400'}`}>{failCount}</div>
               {failCount > 0 && <div className="text-[11px] text-red-400/70 mt-0.5">Requires attention</div>}
             </div>
           </div>
 
           {/* Results Table */}
-          <div className="bg-[#111827] rounded-2xl border border-white/[0.06] overflow-hidden">
+          <div className="bg-card rounded-2xl border border-border overflow-hidden">
             <div className="px-5 py-3 border-b border-white/[0.04]">
-              <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Contingency Results</h3>
+              <h3 className="text-[12px] font-bold text-muted-foreground uppercase tracking-wider">Contingency Results</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-[12px]">
                 <thead>
-                  <tr className="bg-[#0a0f18]">
+                  <tr className="bg-card">
                     {["Outage", "Converged", "Min V (p.u.)", "Max V (p.u.)", "Losses (MW)", "Status"].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">{h}</th>
+                      <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {cases.map((c, i) => (
-                    <tr key={i} className={`border-t border-white/[0.04] hover:bg-white/[0.02] ${!c.pass ? 'bg-red-500/[0.03]' : ''}`}>
-                      <td className="px-4 py-2.5 font-medium text-white flex items-center gap-1.5">
-                        <ArrowRightLeft className="w-3 h-3 text-slate-600" />
+                    <tr key={i} className={`border-t border-white/[0.04] hover:hover:bg-accent/30 ${!c.pass ? 'bg-red-500/[0.03]' : ''}`}>
+                      <td className="px-4 py-2.5 font-medium text-foreground flex items-center gap-1.5">
+                        <ArrowRightLeft className="w-3 h-3 text-muted-foreground/80" />
                         {c.label}
                       </td>
                       <td className="px-4 py-2.5">

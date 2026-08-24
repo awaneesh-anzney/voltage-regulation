@@ -20,11 +20,13 @@ export interface HistoryControls<T> {
   canRedo: boolean;
   history: HistoryEntry<T>[];
   currentIndex: number;
-  commit: (description: string) => void;  // Force a named commit
+  commit: (description: string) => void;
   revertTo: (index: number) => void;
+  deleteEntry: (index: number) => void;
+  clearHistory: () => void;
 }
 
-const MAX_HISTORY = 100;
+const MAX_HISTORY = 20;
 const DEBOUNCE_MS = 2000;
 
 export function useHistoryState<T>(
@@ -70,11 +72,26 @@ export function useHistoryState<T>(
   // Save to localStorage whenever state changes
   useEffect(() => {
     if (isInitialized && storageKey && typeof window !== "undefined") {
-      try {
-        localStorage.setItem(storageKey, JSON.stringify({ past, present, future }));
-      } catch (e) {
-        console.error("Failed to save history state to localStorage", e);
-      }
+      const saveToStorage = (pastToSave: HistoryEntry<T>[], futureToSave: HistoryEntry<T>[]) => {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify({ past: pastToSave, present, future: futureToSave }));
+        } catch (e) {
+          // QuotaExceededError — prune oldest history entries and retry
+          if (pastToSave.length > 1) {
+            const prunedPast = pastToSave.slice(Math.ceil(pastToSave.length / 2));
+            console.warn(`localStorage quota exceeded, pruning history from ${pastToSave.length} to ${prunedPast.length} entries`);
+            saveToStorage(prunedPast, []);
+          } else {
+            // Last resort: save only the present state with no history
+            try {
+              localStorage.setItem(storageKey, JSON.stringify({ past: [], present, future: [] }));
+            } catch (e2) {
+              console.error("Failed to save even minimal state to localStorage", e2);
+            }
+          }
+        }
+      };
+      saveToStorage(past, future);
     }
   }, [past, present, future, isInitialized, storageKey]);
 
@@ -195,7 +212,6 @@ export function useHistoryState<T>(
       debounceRef.current = null;
       pendingDescriptionRef.current = null;
     }
-    // Build full timeline
     const fullTimeline = [...past, present, ...future];
     if (index < 0 || index >= fullTimeline.length) return;
 
@@ -206,6 +222,33 @@ export function useHistoryState<T>(
     setPresent(target);
     setFuture(newFuture);
   }, [past, present, future]);
+
+  // Delete a specific entry from history (cannot delete current)
+  const deleteEntry = useCallback((index: number) => {
+    const fullTimeline = [...past, present, ...future];
+    const currentIdx = past.length;
+    if (index === currentIdx || index < 0 || index >= fullTimeline.length) return;
+
+    const filtered = fullTimeline.filter((_, i) => i !== index);
+    // Recalculate current index after deletion
+    const newCurrentIdx = index < currentIdx ? currentIdx - 1 : currentIdx;
+
+    setPast(filtered.slice(0, newCurrentIdx));
+    setPresent(filtered[newCurrentIdx]);
+    setFuture(filtered.slice(newCurrentIdx + 1));
+  }, [past, present, future]);
+
+  // Clear all history except current state
+  const clearHistory = useCallback(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+      pendingDescriptionRef.current = null;
+    }
+    setPast([]);
+    setFuture([]);
+    setPresent(prev => ({ ...prev, description: "History cleared", timestamp: Date.now() }));
+  }, []);
 
   // Build full history for display
   const fullHistory = [...past, present, ...future];
@@ -222,5 +265,7 @@ export function useHistoryState<T>(
     currentIndex,
     commit,
     revertTo,
+    deleteEntry,
+    clearHistory,
   };
 }

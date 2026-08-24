@@ -21,8 +21,8 @@ function KpiCard({ label, value, sub, status, highlight }: {
   };
   const color = status ? colorMap[status] : "text-blue-400";
   return (
-    <div className={`bg-[#111827] border rounded-xl p-4 relative overflow-hidden group hover:border-white/[0.1] transition-all ${
-      highlight ? "border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.08)]" : "border-white/[0.06]"
+    <div className={`bg-card border rounded-xl p-4 relative overflow-hidden group hover:border-border transition-all ${
+      highlight ? "border-blue-500/30 shadow-[0_0_20px_rgba(59,130,246,0.08)]" : "border-border"
     }`}>
       <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent ${
         status === 'danger' ? 'via-red-500' : status === 'warn' ? 'via-amber-500' : status === 'ok' ? 'via-emerald-500' : 'via-blue-500'
@@ -41,10 +41,10 @@ function ForceBar({ label, sublabel, value, maxValue, color }: {
   return (
     <div>
       <div className="flex justify-between text-[13px] mb-1">
-        <span className="text-slate-400" dangerouslySetInnerHTML={{ __html: sublabel }} />
-        <span className="text-white font-medium font-mono">{(value / 1000).toFixed(1)} kN</span>
+        <span className="text-muted-foreground" dangerouslySetInnerHTML={{ __html: sublabel }} />
+        <span className="text-foreground font-medium font-mono">{(value / 1000).toFixed(1)} kN</span>
       </div>
-      <div className="bg-[#0a0f18] rounded-md overflow-hidden h-2">
+      <div className="bg-background rounded-md overflow-hidden h-2">
         <div
           className="h-2 rounded-md transition-all duration-500"
           style={{ width: `${pct}%`, background: color }}
@@ -57,14 +57,14 @@ function ForceBar({ label, sublabel, value, maxValue, color }: {
 function ResultRow({ label, value, badge }: { label: string; value: string; badge?: { text: string; ok: boolean } }) {
   return (
     <tr className="hover:bg-white/[0.02] transition-colors">
-      <td className="px-4 py-2.5 text-[13px] text-slate-400" dangerouslySetInnerHTML={{ __html: label }} />
+      <td className="px-4 py-2.5 text-[13px] text-muted-foreground" dangerouslySetInnerHTML={{ __html: label }} />
       <td className="px-4 py-2.5 text-right">
         {badge ? (
           <span className={`inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-md ${
             badge.ok ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"
           }`}>{badge.text}</span>
         ) : (
-          <span className="text-[13px] text-white font-medium font-mono">{value}</span>
+          <span className="text-[13px] text-foreground font-medium font-mono">{value}</span>
         )}
       </td>
     </tr>
@@ -138,9 +138,9 @@ export function ResultsDashboard({ inputs, results }: ResultsDashboardProps) {
       {/* Two-column: Clearance & Intermediate values */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Clearance & Displacement */}
-        <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-white/[0.04] bg-slate-900/30">
-            <h3 className="text-[12px] font-semibold text-white uppercase tracking-wider">Clearance & Displacement</h3>
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-border bg-accent/30">
+            <h3 className="text-[12px] font-semibold text-foreground uppercase tracking-wider">Clearance & Displacement</h3>
           </div>
           <table className="w-full">
             <tbody className="divide-y divide-white/[0.04]">
@@ -157,9 +157,9 @@ export function ResultsDashboard({ inputs, results }: ResultsDashboardProps) {
         </div>
 
         {/* Key Intermediate Values */}
-        <div className="bg-[#111827] border border-white/[0.06] rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-white/[0.04] bg-slate-900/30">
-            <h3 className="text-[12px] font-semibold text-white uppercase tracking-wider">Key Intermediate Values</h3>
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-border bg-accent/30">
+            <h3 className="text-[12px] font-semibold text-foreground uppercase tracking-wider">Key Intermediate Values</h3>
           </div>
           <table className="w-full">
             <tbody className="divide-y divide-white/[0.04]">
@@ -177,8 +177,8 @@ export function ResultsDashboard({ inputs, results }: ResultsDashboardProps) {
       </div>
 
       {/* Force Comparison Bar Chart */}
-      <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
-        <h3 className="text-[12px] font-semibold text-white uppercase tracking-wider mb-4">Force Comparison</h3>
+      <div className="bg-card border border-border rounded-xl p-5">
+        <h3 className="text-[12px] font-semibold text-foreground uppercase tracking-wider mb-4">Force Comparison</h3>
         <div className="space-y-3">
           <ForceBar label="Fst" sublabel="Static tension F<sub>st</sub>" value={Fst} maxValue={maxForce} color="#3b82f6" />
           <ForceBar label="Ftd" sublabel="Tensile force during SC F<sub>td</sub>" value={Ftd} maxValue={maxForce} color="#10b981" />
@@ -188,15 +188,15 @@ export function ResultsDashboard({ inputs, results }: ResultsDashboardProps) {
       </div>
 
       {/* Engineering Summary */}
-      <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
-        <h3 className="text-[12px] font-semibold text-white uppercase tracking-wider mb-3">Engineering Summary</h3>
-        <div className="text-[13px] text-slate-300 leading-relaxed space-y-2">
+      <div className="bg-card border border-border rounded-xl p-5">
+        <h3 className="text-[12px] font-semibold text-foreground uppercase tracking-wider mb-3">Engineering Summary</h3>
+        <div className="text-[13px] text-muted-foreground leading-relaxed space-y-2">
           <p>
             The conductor {clCheck ? "remains mechanically safe" : <span className="text-red-400 font-semibold">violates clearance requirements</span>} under the specified {(inputs.ik3 / 1000).toFixed(0)} kA three-phase short circuit
             with a {inputs.lspan} m span ({inputs.conductorName}, {inputs.nc === 1 ? "single" : `${inputs.nc}-bundle`}).
           </p>
           <p>
-            Maximum governing load is the <strong className="text-white">{governing.toLowerCase()}</strong> at <strong className="text-white">{(Fmax / 1000).toFixed(1)} kN</strong> ({Math.round(Fmax / G).toLocaleString()} kg).
+            Maximum governing load is the <strong className="text-foreground">{governing.toLowerCase()}</strong> at <strong className="text-foreground">{(Fmax / 1000).toFixed(1)} kN</strong> ({Math.round(Fmax / G).toLocaleString()} kg).
             {r > 0.6 && deltam_deg > 70 ? " The high load parameter (r=" + r.toFixed(2) + ") and large swing angle (δm=" + deltam_deg.toFixed(1) + "°) trigger the post-fault gravitational drop force formula." : ""}
           </p>
           <p>

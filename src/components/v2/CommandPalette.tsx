@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Search, ShieldAlert, Network, DollarSign, Shield, Cable, Activity,
-  Sparkles, FileText, History, Home, Play, FileDown, Zap, Command
+  Sparkles, FileText, History, Home, Play, FileDown, Zap, Command,
+  FilePlus, Save, FolderOpen, Gauge
 } from "lucide-react";
 import type { ModuleId } from "@/components/v2/Sidebar";
 
@@ -21,11 +22,15 @@ interface CommandPaletteProps {
   onClose: () => void;
   onNavigate: (module: ModuleId) => void;
   onRunCalculation?: () => void;
+  onNewCase?: () => void;
+  onSaveCase?: () => void;
+  onLoadCase?: (file: File) => void;
 }
 
-export function CommandPalette({ isOpen, onClose, onNavigate, onRunCalculation }: CommandPaletteProps) {
+export function CommandPalette({ isOpen, onClose, onNavigate, onRunCalculation, onNewCase, onSaveCase, onLoadCase }: CommandPaletteProps) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const commands: CommandItem[] = useMemo(() => [
     // Navigation
@@ -34,6 +39,8 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onRunCalculation }
     { id: "loadflow", label: "Load Flow", description: "Newton-Raphson meshed network", icon: Network, category: "navigate", action: () => { onNavigate("loadflow"); onClose(); } },
     { id: "losses", label: "Losses & ROI", description: "Technical loss analysis", icon: DollarSign, category: "navigate", action: () => { onNavigate("losses"); onClose(); } },
     { id: "contingency", label: "N-1 Contingency", description: "Single outage reliability", icon: Shield, category: "navigate", action: () => { onNavigate("contingency"); onClose(); } },
+    { id: "protection", label: "Protection Coord.", description: "TCC curve coordination", icon: ShieldAlert, category: "navigate", action: () => { onNavigate("protection"); onClose(); } },
+    { id: "ctsizing", label: "CT Sizing", description: "IS 2705 / IEC 61869", icon: Gauge, category: "navigate", action: () => { onNavigate("ctsizing"); onClose(); } },
     { id: "sagtension", label: "Sag-Tension", description: "IS 802 catenary calculation", icon: Cable, category: "navigate", action: () => { onNavigate("sagtension"); onClose(); } },
     { id: "scforces", label: "SC Forces", description: "IEC 60865-1 mechanical forces", icon: Activity, category: "navigate", action: () => { onNavigate("scforces"); onClose(); } },
     { id: "ai", label: "AI Insights", description: "AI-powered recommendations", icon: Sparkles, category: "navigate", action: () => { onNavigate("ai"); onClose(); } },
@@ -42,7 +49,10 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onRunCalculation }
     // Actions
     { id: "run", label: "Run Calculation", description: "Execute active module", icon: Play, category: "action", action: () => { onRunCalculation?.(); onClose(); } },
     { id: "export", label: "Export Report", description: "Generate PDF report", icon: FileDown, category: "action", action: () => { onClose(); } },
-  ], [onNavigate, onClose, onRunCalculation]);
+    { id: "new-case", label: "New Case", description: "Start a fresh project (clears data)", icon: FilePlus, category: "action", action: () => { onNewCase?.(); onClose(); } },
+    { id: "save-case", label: "Save Case", description: "Download project as JSON file", icon: Save, category: "action", action: () => { onSaveCase?.(); onClose(); } },
+    { id: "load-case", label: "Load Case", description: "Open a saved JSON project file", icon: FolderOpen, category: "action", action: () => { fileInputRef.current?.click(); onClose(); } },
+  ], [onNavigate, onClose, onRunCalculation, onNewCase, onSaveCase]);
 
   const filtered = useMemo(() => {
     if (!query.trim()) return commands;
@@ -97,12 +107,12 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onRunCalculation }
 
       {/* Palette */}
       <div
-        className="relative w-full max-w-[560px] bg-[#111827] border border-white/[0.08] rounded-2xl shadow-2xl shadow-black/40 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        className="relative w-full max-w-[560px] bg-card border border-white/[0.08] rounded-2xl shadow-2xl shadow-black/40 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.06]">
-          <Search className="w-4.5 h-4.5 text-slate-500 shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
+          <Search className="w-4.5 h-4.5 text-muted-foreground shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -110,20 +120,20 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onRunCalculation }
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type a command or search..."
-            className="flex-1 bg-transparent text-[14px] text-white placeholder:text-slate-600 focus:outline-none"
+            className="flex-1 bg-transparent text-[14px] text-foreground placeholder:text-muted-foreground/80 focus:outline-none"
           />
-          <kbd className="px-2 py-0.5 rounded-md bg-white/[0.06] border border-white/[0.08] text-[10px] text-slate-500 font-mono">ESC</kbd>
+          <kbd className="px-2 py-0.5 rounded-md bg-white/[0.06] border border-white/[0.08] text-[10px] text-muted-foreground font-mono">ESC</kbd>
         </div>
 
         {/* Results */}
         <div className="max-h-[360px] overflow-y-auto py-2 no-scrollbar">
           {filtered.length === 0 && (
-            <div className="px-4 py-8 text-center text-[13px] text-slate-600">No results for &ldquo;{query}&rdquo;</div>
+            <div className="px-4 py-8 text-center text-[13px] text-muted-foreground/80">No results for &ldquo;{query}&rdquo;</div>
           )}
 
           {navigateItems.length > 0 && (
             <>
-              <div className="px-4 py-1 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Navigate</div>
+              <div className="px-4 py-1 text-[10px] font-bold text-muted-foreground/80 uppercase tracking-wider">Navigate</div>
               {navigateItems.map((item) => {
                 const idx = filtered.indexOf(item);
                 return (
@@ -132,16 +142,16 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onRunCalculation }
                     onClick={item.action}
                     onMouseEnter={() => setSelectedIndex(idx)}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all cursor-pointer ${
-                      idx === selectedIndex ? "bg-blue-500/10 text-white" : "text-slate-400 hover:bg-white/[0.03]"
+                      idx === selectedIndex ? "bg-blue-500/10 text-foreground" : "text-muted-foreground hover:bg-accent/50"
                     }`}
                   >
-                    <item.icon className={`w-4 h-4 shrink-0 ${idx === selectedIndex ? "text-blue-400" : "text-slate-600"}`} />
+                    <item.icon className={`w-4 h-4 shrink-0 ${idx === selectedIndex ? "text-blue-400" : "text-muted-foreground/80"}`} />
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-medium truncate">{item.label}</div>
-                      <div className="text-[11px] text-slate-600 truncate">{item.description}</div>
+                      <div className="text-[11px] text-muted-foreground/80 truncate">{item.description}</div>
                     </div>
                     {idx === selectedIndex && (
-                      <span className="text-[10px] text-slate-600 font-mono">↵</span>
+                      <span className="text-[10px] text-muted-foreground/80 font-mono">↵</span>
                     )}
                   </button>
                 );
@@ -151,7 +161,7 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onRunCalculation }
 
           {actionItems.length > 0 && (
             <>
-              <div className="px-4 py-1 mt-1 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Actions</div>
+              <div className="px-4 py-1 mt-1 text-[10px] font-bold text-muted-foreground/80 uppercase tracking-wider">Actions</div>
               {actionItems.map((item) => {
                 const idx = filtered.indexOf(item);
                 return (
@@ -160,13 +170,13 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onRunCalculation }
                     onClick={item.action}
                     onMouseEnter={() => setSelectedIndex(idx)}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all cursor-pointer ${
-                      idx === selectedIndex ? "bg-blue-500/10 text-white" : "text-slate-400 hover:bg-white/[0.03]"
+                      idx === selectedIndex ? "bg-blue-500/10 text-foreground" : "text-muted-foreground hover:bg-accent/50"
                     }`}
                   >
-                    <item.icon className={`w-4 h-4 shrink-0 ${idx === selectedIndex ? "text-teal-400" : "text-slate-600"}`} />
+                    <item.icon className={`w-4 h-4 shrink-0 ${idx === selectedIndex ? "text-teal-400" : "text-muted-foreground/80"}`} />
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-medium truncate">{item.label}</div>
-                      <div className="text-[11px] text-slate-600 truncate">{item.description}</div>
+                      <div className="text-[11px] text-muted-foreground/80 truncate">{item.description}</div>
                     </div>
                   </button>
                 );
@@ -176,12 +186,27 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onRunCalculation }
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-4 px-4 py-2 border-t border-white/[0.06] text-[10px] text-slate-600">
-          <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-white/[0.04] rounded text-[9px] font-mono">↑↓</kbd> Navigate</span>
-          <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-white/[0.04] rounded text-[9px] font-mono">↵</kbd> Select</span>
-          <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-white/[0.04] rounded text-[9px] font-mono">Esc</kbd> Close</span>
+        <div className="flex items-center gap-4 px-4 py-2 border-t border-border text-[10px] text-muted-foreground/80">
+          <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-accent/60 rounded text-[9px] font-mono">↑↓</kbd> Navigate</span>
+          <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-accent/60 rounded text-[9px] font-mono">↵</kbd> Select</span>
+          <span className="flex items-center gap-1"><kbd className="px-1.5 py-0.5 bg-accent/60 rounded text-[9px] font-mono">Esc</kbd> Close</span>
         </div>
       </div>
+
+      {/* Hidden file input for Load Case via Command Palette */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            onLoadCase?.(file);
+            e.target.value = "";
+          }
+        }}
+      />
     </div>
   );
 }

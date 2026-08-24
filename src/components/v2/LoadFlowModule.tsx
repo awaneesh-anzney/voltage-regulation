@@ -19,7 +19,7 @@ function InputField({ label, value, unit, onChange, step }: {
 
   return (
     <div className="space-y-1">
-      <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">{label}</label>
+      <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</label>
       <div className="flex items-center gap-1.5">
         <input
           type="number"
@@ -28,7 +28,7 @@ function InputField({ label, value, unit, onChange, step }: {
           onFocus={() => { setIsFocused(true); setLocalValue(String(value)); }}
           onChange={(e) => { setLocalValue(e.target.value); const p = parseFloat(e.target.value); if (!isNaN(p)) onChange(p); }}
           onBlur={() => { setIsFocused(false); const p = parseFloat(localValue); if (isNaN(p)) setLocalValue(String(value)); else { onChange(p); setLocalValue(String(p)); } }}
-          className="flex-1 bg-[#0a0f18] border border-white/[0.06] rounded-lg px-3 py-2 text-[13px] text-white font-mono focus:outline-none focus:border-blue-500/30 focus:ring-1 focus:ring-blue-500/20 transition-all"
+          className="flex-1 bg-card border border-border rounded-lg px-3 py-2 text-[13px] text-foreground font-mono focus:outline-none focus:border-blue-500/30 focus:ring-1 focus:ring-blue-500/20 transition-all"
         />
         {unit && <span className="px-2 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/15 text-[10px] text-cyan-400 font-semibold shrink-0">{unit}</span>}
       </div>
@@ -49,7 +49,7 @@ function Section({ title, accent, defaultOpen, children }: {
   return (
     <div className="border-b border-white/[0.04] last:border-0">
       <button onClick={() => setOpen(!open)}
-        className={`w-full flex items-center gap-2 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:bg-white/[0.02] ${accentColors[accent] || accentColors.blue}`}>
+        className={`w-full flex items-center gap-2 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:hover:bg-accent/30 ${accentColors[accent] || accentColors.blue}`}>
         {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
         <span>{title}</span>
       </button>
@@ -86,12 +86,12 @@ export function LoadFlowInspector({ buses, branches, onUpdateBus, onUpdateBranch
 }) {
   return (
     <div className="h-full flex flex-col">
-      <div className="px-4 py-3 border-b border-white/[0.06] shrink-0">
-        <h3 className="text-[13px] font-bold text-white flex items-center gap-1.5">
+      <div className="px-4 py-3 border-b border-border shrink-0">
+        <h3 className="text-[13px] font-bold text-foreground flex items-center gap-1.5">
           <Settings2 className="w-4 h-4 text-blue-400" />
           Load Flow Parameters
         </h3>
-        <p className="text-[10px] text-slate-600 mt-0.5">Newton-Raphson Method</p>
+        <p className="text-[10px] text-muted-foreground/80 mt-0.5">Newton-Raphson Method</p>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar">
@@ -101,17 +101,17 @@ export function LoadFlowInspector({ buses, branches, onUpdateBus, onUpdateBranch
 
         <Section title={`Buses (${buses.length})`} accent="amber" defaultOpen>
           {buses.map((bus, i) => (
-            <div key={i} className="bg-[#0a0f18] rounded-xl p-3 border border-white/[0.04] space-y-2">
+            <div key={i} className="bg-card rounded-xl p-3 border border-white/[0.04] space-y-2">
               <div className="flex items-center justify-between">
                 <input value={bus.name} onChange={(e) => onUpdateBus(i, { name: e.target.value })}
-                  className="bg-transparent text-[12px] text-white font-semibold focus:outline-none flex-1 min-w-0" />
+                  className="bg-transparent text-[12px] text-foreground font-semibold focus:outline-none flex-1 min-w-0" />
                 <div className="flex items-center gap-1.5">
                   <select value={bus.type} onChange={(e) => onUpdateBus(i, { type: e.target.value as Bus["type"] })}
-                    className="bg-[#111827] border border-white/[0.06] rounded-md px-1.5 py-0.5 text-[10px] text-slate-300 cursor-pointer">
+                    className="bg-card border border-border rounded-md px-1.5 py-0.5 text-[10px] text-foreground/90 cursor-pointer">
                     <option value="Slack">Slack</option><option value="PV">PV</option><option value="PQ">PQ</option>
                   </select>
                   {buses.length > 2 && (
-                    <button onClick={() => onRemoveBus(i)} className="p-1 rounded-md hover:bg-red-500/20 text-slate-600 hover:text-red-400 transition-all cursor-pointer">
+                    <button onClick={() => onRemoveBus(i)} className="p-1 rounded-md hover:bg-red-500/20 text-muted-foreground/80 hover:text-red-400 transition-all cursor-pointer">
                       <Trash2 className="w-3 h-3" />
                     </button>
                   )}
@@ -128,36 +128,36 @@ export function LoadFlowInspector({ buses, branches, onUpdateBus, onUpdateBranch
             </div>
           ))}
           <button onClick={onAddBus}
-            className="w-full py-2 rounded-lg border border-dashed border-white/[0.1] text-[11px] text-slate-500 hover:text-white hover:border-blue-500/30 transition-all cursor-pointer flex items-center justify-center gap-1.5">
+            className="w-full py-2 rounded-lg border border-dashed border-white/[0.1] text-[11px] text-muted-foreground hover:text-foreground hover:border-blue-500/30 transition-all cursor-pointer flex items-center justify-center gap-1.5">
             <Plus className="w-3 h-3" /> Add Bus
           </button>
         </Section>
 
         <Section title={`Branches (${branches.length})`} accent="teal" defaultOpen={false}>
           {branches.map((br, i) => (
-            <div key={i} className="bg-[#0a0f18] rounded-xl p-3 border border-white/[0.04] space-y-2">
+            <div key={i} className="bg-card rounded-xl p-3 border border-white/[0.04] space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-slate-400 font-mono">
+                <span className="text-[11px] text-muted-foreground font-mono">
                   {buses[br.fromBus]?.name || `Bus ${br.fromBus}`} → {buses[br.toBus]?.name || `Bus ${br.toBus}`}
                 </span>
                 {branches.length > 1 && (
-                  <button onClick={() => onRemoveBranch(i)} className="p-1 rounded-md hover:bg-red-500/20 text-slate-600 hover:text-red-400 transition-all cursor-pointer">
+                  <button onClick={() => onRemoveBranch(i)} className="p-1 rounded-md hover:bg-red-500/20 text-muted-foreground/80 hover:text-red-400 transition-all cursor-pointer">
                     <Trash2 className="w-3 h-3" />
                   </button>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-600">From</label>
+                  <label className="text-[10px] text-muted-foreground/80">From</label>
                   <select value={br.fromBus} onChange={(e) => onUpdateBranch(i, { fromBus: parseInt(e.target.value) })}
-                    className="w-full bg-[#111827] border border-white/[0.06] rounded-md px-2 py-1 text-[11px] text-white cursor-pointer">
+                    className="w-full bg-card border border-border rounded-md px-2 py-1 text-[11px] text-foreground cursor-pointer">
                     {buses.map((b, bi) => <option key={bi} value={bi}>{b.name}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-600">To</label>
+                  <label className="text-[10px] text-muted-foreground/80">To</label>
                   <select value={br.toBus} onChange={(e) => onUpdateBranch(i, { toBus: parseInt(e.target.value) })}
-                    className="w-full bg-[#111827] border border-white/[0.06] rounded-md px-2 py-1 text-[11px] text-white cursor-pointer">
+                    className="w-full bg-card border border-border rounded-md px-2 py-1 text-[11px] text-foreground cursor-pointer">
                     {buses.map((b, bi) => <option key={bi} value={bi}>{b.name}</option>)}
                   </select>
                 </div>
@@ -170,15 +170,15 @@ export function LoadFlowInspector({ buses, branches, onUpdateBus, onUpdateBranch
             </div>
           ))}
           <button onClick={onAddBranch}
-            className="w-full py-2 rounded-lg border border-dashed border-white/[0.1] text-[11px] text-slate-500 hover:text-white hover:border-teal-500/30 transition-all cursor-pointer flex items-center justify-center gap-1.5">
+            className="w-full py-2 rounded-lg border border-dashed border-white/[0.1] text-[11px] text-muted-foreground hover:text-foreground hover:border-teal-500/30 transition-all cursor-pointer flex items-center justify-center gap-1.5">
             <Plus className="w-3 h-3" /> Add Branch
           </button>
         </Section>
       </div>
 
-      <div className="p-3 border-t border-white/[0.06] shrink-0">
+      <div className="p-3 border-t border-border shrink-0">
         <button onClick={onSolve}
-          className="w-full py-3 rounded-xl text-[13px] font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
+          className="w-full py-3 rounded-xl text-[13px] font-bold text-foreground bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
           <Play className="w-4 h-4" />
           Solve Load Flow
         </button>
@@ -190,12 +190,12 @@ export function LoadFlowInspector({ buses, branches, onUpdateBus, onUpdateBranch
 // ─── KPI Card ───
 function KPICard({ label, value, unit, color, sub }: { label: string; value: string; unit?: string; color: string; sub?: string }) {
   return (
-    <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-4 hover:border-white/[0.1] transition-all">
-      <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{label}</div>
+    <div className="bg-card border border-border rounded-xl p-4 hover:border-white/[0.1] transition-all">
+      <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">{label}</div>
       <div className={`text-[22px] font-mono font-bold mt-1 ${color}`}>
-        {value}{unit && <span className="text-[13px] text-slate-500 ml-1">{unit}</span>}
+        {value}{unit && <span className="text-[13px] text-muted-foreground ml-1">{unit}</span>}
       </div>
-      {sub && <div className="text-[11px] text-slate-500 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[11px] text-muted-foreground mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -208,17 +208,17 @@ export function LoadFlowCanvas({ buses, branches, result }: {
     <div className="p-6 space-y-5 max-w-7xl mx-auto pb-20">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+        <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Network className="w-5 h-5 text-blue-500" />
           Meshed Load Flow Analysis
         </h1>
-        <p className="text-[13px] text-slate-400 mt-1.5 max-w-2xl">
+        <p className="text-[13px] text-muted-foreground mt-1.5 max-w-2xl">
           Newton-Raphson power flow solution for meshed transmission networks. Computes bus voltages, branch flows, and system losses.
         </p>
       </div>
 
       {/* Info Strip */}
-      <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-500/[0.06] border border-blue-500/15 text-[12px] text-slate-300">
+      <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-500/[0.06] border border-blue-500/15 text-[12px] text-foreground/90">
         <Network className="w-4 h-4 text-blue-400 shrink-0" />
         <span className="font-mono">{buses.length} Buses · {branches.length} Branches</span>
       </div>
@@ -227,7 +227,7 @@ export function LoadFlowCanvas({ buses, branches, result }: {
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <Network className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-            <p className="text-slate-500 text-[13px]">Configure network and click <span className="text-blue-400 font-semibold">Solve Load Flow</span></p>
+            <p className="text-muted-foreground text-[13px]">Configure network and click <span className="text-blue-400 font-semibold">Solve Load Flow</span></p>
           </div>
         </div>
       )}
@@ -243,16 +243,16 @@ export function LoadFlowCanvas({ buses, branches, result }: {
           </div>
 
           {/* Bus Results Table */}
-          <div className="bg-[#111827] rounded-2xl border border-white/[0.06] overflow-hidden">
+          <div className="bg-card rounded-2xl border border-border overflow-hidden">
             <div className="px-5 py-3 border-b border-white/[0.04]">
-              <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Bus Voltages & Power</h3>
+              <h3 className="text-[12px] font-bold text-muted-foreground uppercase tracking-wider">Bus Voltages & Power</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-[12px]">
                 <thead>
-                  <tr className="bg-[#0a0f18]">
+                  <tr className="bg-card">
                     {["Bus", "Type", "V (p.u.)", "θ (°)", "P_Gen (MW)", "Q_Gen (MVAr)", "P_Load (MW)", "Q_Load (MVAr)"].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">{h}</th>
+                      <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -260,8 +260,8 @@ export function LoadFlowCanvas({ buses, branches, result }: {
                   {result.buses.map((bus, i) => {
                     const vOk = bus.v >= 0.95 && bus.v <= 1.05;
                     return (
-                      <tr key={i} className="border-t border-white/[0.04] hover:bg-white/[0.02]">
-                        <td className="px-4 py-2.5 font-medium text-white">{bus.name}</td>
+                      <tr key={i} className="border-t border-white/[0.04] hover:hover:bg-accent/30">
+                        <td className="px-4 py-2.5 font-medium text-foreground">{bus.name}</td>
                         <td className="px-4 py-2.5">
                           <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
                             bus.type === 'Slack' ? 'bg-purple-500/15 text-purple-400' :
@@ -270,11 +270,11 @@ export function LoadFlowCanvas({ buses, branches, result }: {
                           }`}>{bus.type}</span>
                         </td>
                         <td className={`px-4 py-2.5 font-mono font-semibold ${vOk ? 'text-emerald-400' : 'text-red-400'}`}>{bus.v}</td>
-                        <td className="px-4 py-2.5 font-mono text-white">{bus.theta}</td>
-                        <td className="px-4 py-2.5 font-mono text-white">{bus.pGen}</td>
-                        <td className="px-4 py-2.5 font-mono text-white">{bus.qGen}</td>
-                        <td className="px-4 py-2.5 font-mono text-slate-400">{bus.pLoad}</td>
-                        <td className="px-4 py-2.5 font-mono text-slate-400">{bus.qLoad}</td>
+                        <td className="px-4 py-2.5 font-mono text-foreground">{bus.theta}</td>
+                        <td className="px-4 py-2.5 font-mono text-foreground">{bus.pGen}</td>
+                        <td className="px-4 py-2.5 font-mono text-foreground">{bus.qGen}</td>
+                        <td className="px-4 py-2.5 font-mono text-muted-foreground">{bus.pLoad}</td>
+                        <td className="px-4 py-2.5 font-mono text-muted-foreground">{bus.qLoad}</td>
                       </tr>
                     );
                   })}
@@ -284,30 +284,30 @@ export function LoadFlowCanvas({ buses, branches, result }: {
           </div>
 
           {/* Branch Flows Table */}
-          <div className="bg-[#111827] rounded-2xl border border-white/[0.06] overflow-hidden">
+          <div className="bg-card rounded-2xl border border-border overflow-hidden">
             <div className="px-5 py-3 border-b border-white/[0.04]">
-              <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-wider">Branch Power Flows</h3>
+              <h3 className="text-[12px] font-bold text-muted-foreground uppercase tracking-wider">Branch Power Flows</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-[12px]">
                 <thead>
-                  <tr className="bg-[#0a0f18]">
+                  <tr className="bg-card">
                     {["Branch", "P_from (MW)", "Q_from (MVAr)", "P_to (MW)", "Q_to (MVAr)", "Losses (MW)"].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">{h}</th>
+                      <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {result.branches.map((br, i) => (
-                    <tr key={i} className="border-t border-white/[0.04] hover:bg-white/[0.02]">
-                      <td className="px-4 py-2.5 font-medium text-white flex items-center gap-1.5">
-                        <ArrowRightLeft className="w-3 h-3 text-slate-600" />
+                    <tr key={i} className="border-t border-white/[0.04] hover:hover:bg-accent/30">
+                      <td className="px-4 py-2.5 font-medium text-foreground flex items-center gap-1.5">
+                        <ArrowRightLeft className="w-3 h-3 text-muted-foreground/80" />
                         {result.buses[br.fromBus]?.name || br.fromBus} → {result.buses[br.toBus]?.name || br.toBus}
                       </td>
-                      <td className="px-4 py-2.5 font-mono text-white">{br.pFromTo}</td>
-                      <td className="px-4 py-2.5 font-mono text-white">{br.qFromTo}</td>
-                      <td className="px-4 py-2.5 font-mono text-white">{br.pToFrom}</td>
-                      <td className="px-4 py-2.5 font-mono text-white">{br.qToFrom}</td>
+                      <td className="px-4 py-2.5 font-mono text-foreground">{br.pFromTo}</td>
+                      <td className="px-4 py-2.5 font-mono text-foreground">{br.qFromTo}</td>
+                      <td className="px-4 py-2.5 font-mono text-foreground">{br.pToFrom}</td>
+                      <td className="px-4 py-2.5 font-mono text-foreground">{br.qToFrom}</td>
                       <td className={`px-4 py-2.5 font-mono font-semibold ${br.losses > 1 ? 'text-red-400' : 'text-amber-400'}`}>{br.losses}</td>
                     </tr>
                   ))}

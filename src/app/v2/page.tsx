@@ -10,6 +10,7 @@ import { FaultInspector, FaultCanvas } from "@/components/v2/FaultModule";
 import { CommandPalette } from "@/components/v2/CommandPalette";
 import { StaleWarning } from "@/components/v2/TrustWidgets";
 import { HistoryModule } from "@/components/v2/HistoryModule";
+import { ReportModule } from "@/components/v2/ReportModule";
 import { LoadFlowInspector, LoadFlowCanvas, getDefaultBuses, getDefaultBranches } from "@/components/v2/LoadFlowModule";
 import { LossesInspector, LossesCanvas, getDefaultLossesInputs } from "@/components/v2/LossesModule";
 import { CTSizingInspector, CTSizingCanvas } from "@/components/v2/CTSizingModule";
@@ -40,6 +41,7 @@ import {
 
 // ─── Project State Shape ───
 interface ProjectState {
+  projectName: string;
   faultInputs: FaultInput;
   faultResults: FaultResults | null;
   scInputs: SCInputs;
@@ -59,6 +61,7 @@ interface ProjectState {
 
 function getInitialProjectState(): ProjectState {
   return {
+    projectName: "Riyadh North 220kV Feeder",
     faultInputs: {
       voltageKv: 220, sourceMva: 1000, lineLengthKm: 15,
       lineRPerKm: 0.0687, lineXPerKm: 0.320,
@@ -89,9 +92,9 @@ function PlaceholderModule({ name, icon: Icon, description }: { name: string; ic
         <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-4">
           <Icon className="w-8 h-8 text-blue-400" />
         </div>
-        <h2 className="text-xl font-bold text-white mb-2">{name}</h2>
-        <p className="text-[13px] text-slate-400 leading-relaxed">{description}</p>
-        <div className="mt-6 flex items-center justify-center gap-2 text-[11px] text-slate-600">
+        <h2 className="text-xl font-bold text-foreground mb-2">{name}</h2>
+        <p className="text-[13px] text-muted-foreground leading-relaxed">{description}</p>
+        <div className="mt-6 flex items-center justify-center gap-2 text-[11px] text-muted-foreground/80">
           <Construction className="w-3.5 h-3.5" />
           <span>Module integration in progress — engine already built</span>
         </div>
@@ -114,10 +117,33 @@ const MODULE_CONFIG: Record<string, { name: string; icon: React.ElementType; des
 const MODULES_WITH_INSPECTOR: ModuleId[] = ["scforces", "sagtension", "fault", "loadflow", "losses", "ctsizing", "protection"];
 
 export default function V2Page() {
-  const [activeModule, setActiveModule] = useState<ModuleId>("home");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [projectName, setProjectName] = useState("Riyadh North 220kV Feeder");
+  // ─── Persisted UI state ───
+  const [activeModule, setActiveModuleRaw] = useState<ModuleId>("home");
+  const [sidebarCollapsed, setSidebarCollapsedRaw] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+
+  // Restore persisted UI state on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedModule = localStorage.getItem("gridintel-v2-active-module");
+        if (savedModule) setActiveModuleRaw(savedModule as ModuleId);
+        const savedCollapsed = localStorage.getItem("gridintel-v2-sidebar-collapsed");
+        if (savedCollapsed) setSidebarCollapsedRaw(savedCollapsed === "true");
+      } catch {}
+    }
+  }, []);
+
+  // Wrapped setters that persist to localStorage
+  const setActiveModule = useCallback((mod: ModuleId) => {
+    setActiveModuleRaw(mod);
+    try { localStorage.setItem("gridintel-v2-active-module", mod); } catch {}
+  }, []);
+
+  const setSidebarCollapsed = useCallback((val: boolean) => {
+    setSidebarCollapsedRaw(val);
+    try { localStorage.setItem("gridintel-v2-sidebar-collapsed", String(val)); } catch {}
+  }, []);
 
   // Global state
   const [systemVoltage_kV] = useState(220);
@@ -130,6 +156,10 @@ export default function V2Page() {
     "gridintel-v2-project-state" // This key enables localStorage persistence
   );
   const project = projectHistory.state;
+  const projectName = project.projectName;
+  const setProjectName = useCallback((name: string) => {
+    projectHistory.setState({ ...project, projectName: name }, "Renamed project");
+  }, [project, projectHistory]);
 
   // Stale-data dismissal (UI-only, not part of history)
   const [staleFaultDismissed, setStaleFaultDismissed] = useState(false);
@@ -309,6 +339,62 @@ export default function V2Page() {
   // Count active links
   const activeLinksCount = (project.hasLinkedFault ? 1 : 0) + (project.hasLinkedSag ? 1 : 0);
 
+  // ─── File Management (New / Save / Load) ───
+  const handleNewCase = useCallback(() => {
+    if (window.confirm("Create a new case? All unsaved data will be lost.")) {
+      projectHistory.clearHistory();
+      const fresh = getInitialProjectState();
+      projectHistory.setState(fresh, "New case created");
+      setActiveModule("home");
+    }
+  }, [projectHistory, setActiveModule]);
+
+  const handleSaveCase = useCallback(() => {
+    const exportData = {
+      _version: "gridintel-v2",
+      _exportedAt: new Date().toISOString(),
+      projectName,
+      state: project,
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${projectName.replace(/[^a-zA-Z0-9]/g, "_")}_${new Date().toISOString().split("T")[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, [project, projectName]);
+
+  const handleLoadCase = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string);
+        // Support both wrapped format and raw state
+        const loadedState: ProjectState = data.state || data;
+        // Validate it has the expected shape
+        if (!loadedState.faultInputs || !loadedState.scInputs) {
+          alert("Invalid case file: missing required fields.");
+          return;
+        }
+        // Ensure projectName exists (backward compat)
+        if (!loadedState.projectName) {
+          loadedState.projectName = data.projectName || "Imported Case";
+        }
+        projectHistory.clearHistory();
+        projectHistory.setState(loadedState, `Loaded case: ${loadedState.projectName}`);
+        projectHistory.commit(`Loaded case: ${loadedState.projectName}`);
+        setActiveModule("home");
+      } catch (err) {
+        alert("Failed to parse case file. Please check the file format.");
+        console.error(err);
+      }
+    };
+    reader.readAsText(file);
+  }, [projectHistory, setActiveModule]);
+
   // ─── Global keyboard shortcuts ───
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -393,8 +479,13 @@ export default function V2Page() {
             onUndo={projectHistory.undo}
             onRedo={projectHistory.redo}
             onRevertTo={projectHistory.revertTo}
+            onDeleteEntry={projectHistory.deleteEntry}
+            onClearHistory={projectHistory.clearHistory}
+            onNavigate={setActiveModule}
           />
         );
+      case "report":
+        return <ReportModule project={project} scResults={scResults} />;
       case "loadflow":
         return <LoadFlowCanvas buses={project.lfBuses} branches={project.lfBranches} result={project.lfResult} />;
       case "losses":
@@ -486,12 +577,15 @@ export default function V2Page() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[#0a0f1a] text-white overflow-hidden">
+    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
       {/* Command Palette */}
       <CommandPalette
         isOpen={commandPaletteOpen}
         onClose={() => setCommandPaletteOpen(false)}
         onNavigate={setActiveModule}
+        onNewCase={handleNewCase}
+        onSaveCase={handleSaveCase}
+        onLoadCase={handleLoadCase}
       />
 
       {/* Top Bar */}
@@ -507,6 +601,9 @@ export default function V2Page() {
         canRedo={projectHistory.canRedo}
         onUndo={projectHistory.undo}
         onRedo={projectHistory.redo}
+        onNewCase={handleNewCase}
+        onSaveCase={handleSaveCase}
+        onLoadCase={handleLoadCase}
       />
 
       {/* Main Content */}
@@ -520,13 +617,13 @@ export default function V2Page() {
         />
 
         {/* Center Canvas */}
-        <div className="flex-1 overflow-y-auto bg-[#0a0f1a]">
+        <div className="flex-1 overflow-y-auto bg-background">
           {renderCanvas()}
         </div>
 
         {/* Right Inspector */}
         {showInspector && (
-          <div className="w-[320px] shrink-0 border-l border-white/[0.06] bg-[#0c1220] overflow-hidden">
+          <div className="w-[320px] shrink-0 border-l border-border bg-background overflow-hidden">
             {renderInspector()}
           </div>
         )}

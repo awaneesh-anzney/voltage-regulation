@@ -21,11 +21,11 @@ function InputField({ label, value, unit, onChange, linked, linkSource, step = 1
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-1.5">
-        <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">{label}</label>
+        <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</label>
         {linked && (
           <div className="group relative">
             <Link2 className="w-3 h-3 text-teal-400" />
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-800 border border-white/10 rounded-md text-[10px] text-teal-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-popover border border-border rounded-md text-[10px] text-teal-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
               Linked from {linkSource}
             </div>
           </div>
@@ -43,9 +43,9 @@ function InputField({ label, value, unit, onChange, linked, linkSource, step = 1
             if (!isNaN(parsed)) onChange(parsed);
           }}
           onBlur={() => { setIsFocused(false); setLocalValue(String(value)); }}
-          className="flex-1 min-w-0 bg-[#0a0f18] border border-white/[0.06] rounded-lg px-3 py-2 text-[13px] font-mono text-white focus:outline-none focus:border-blue-500/30 transition-colors"
+          className="flex-1 min-w-0 bg-card border border-border rounded-lg px-3 py-2 text-[13px] font-mono text-foreground focus:outline-none focus:border-blue-500/30 transition-colors"
         />
-        {unit && <span className="text-[11px] font-semibold text-slate-500 px-2 py-1 bg-white/[0.03] rounded-md">{unit}</span>}
+        {unit && <span className="text-[11px] font-semibold text-muted-foreground px-2 py-1 bg-accent/50 rounded-md">{unit}</span>}
       </div>
     </div>
   );
@@ -63,13 +63,13 @@ function Section({ title, accent, defaultOpen = true, children }: {
   };
 
   return (
-    <div className="border-b border-white/[0.06] last:border-0">
+    <div className="border-b border-border last:border-0">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/[0.02] transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 hover:hover:bg-accent/30 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <div className={`w-1 h-3 rounded-full border border-white/10 ${accentColors[accent].replace("text-", "bg-").replace("border-", "")} opacity-50`} />
+          <div className={`w-1 h-3 rounded-full border border-border ${accentColors[accent].replace("text-", "bg-").replace("border-", "")} opacity-50`} />
           <span className={`text-[11px] font-bold uppercase tracking-wider ${accentColors[accent].split(" ")[0]}`}>
             {title}
           </span>
@@ -88,12 +88,12 @@ export function CTSizingInspector({ inputs, onUpdate, hasLinkedFault }: {
 }) {
   return (
     <div className="h-full flex flex-col">
-      <div className="px-4 py-3 border-b border-white/[0.06] shrink-0">
-        <h3 className="text-[13px] font-bold text-white flex items-center gap-1.5">
+      <div className="px-4 py-3 border-b border-border shrink-0">
+        <h3 className="text-[13px] font-bold text-foreground flex items-center gap-1.5">
           <Settings2 className="w-4 h-4 text-blue-400" />
           CT Sizing Parameters
         </h3>
-        <p className="text-[10px] text-slate-600 mt-0.5">IS 2705 / IEC 61869-2</p>
+        <p className="text-[10px] text-muted-foreground/80 mt-0.5">IS 2705 / IEC 61869-2</p>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar">
@@ -129,13 +129,13 @@ function KPI({ label, value, unit, status, sublabel }: {
     warn: "border-amber-500/20 bg-amber-500/5",
   };
   return (
-    <div className={`rounded-xl border p-4 ${status ? statusColors[status] : "border-white/[0.06] bg-[#111827]"}`}>
-      <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{label}</div>
+    <div className={`rounded-xl border p-4 ${status ? statusColors[status] : "border-border bg-card"}`}>
+      <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">{label}</div>
       <div className="mt-1 flex items-baseline gap-1">
-        <span className="text-[22px] font-mono font-bold text-white">{value}</span>
-        <span className="text-[11px] text-slate-500 font-mono">{unit}</span>
+        <span className="text-[22px] font-mono font-bold text-foreground">{value}</span>
+        <span className="text-[11px] text-muted-foreground font-mono">{unit}</span>
       </div>
-      {sublabel && <div className="text-[10px] text-slate-600 mt-0.5 font-mono">{sublabel}</div>}
+      {sublabel && <div className="text-[10px] text-muted-foreground/80 mt-0.5 font-mono">{sublabel}</div>}
       {status && (
         <div className={`flex items-center gap-1 mt-2 text-[10px] font-semibold ${
           status === "pass" ? "text-emerald-400" : status === "fail" ? "text-red-400" : "text-amber-400"
@@ -156,11 +156,11 @@ export function CTSizingCanvas({ inputs }: { inputs: CTSizingInputs }) {
     <div className="p-6 space-y-6 max-w-5xl mx-auto pb-20">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <ShieldAlert className="w-5 h-5 text-blue-500" />
             CT Sizing Analysis
           </h1>
-          <p className="text-[13px] text-slate-400 mt-1.5">
+          <p className="text-[13px] text-muted-foreground mt-1.5">
             Class PS protection CT dimensioning and Knee Point Voltage verification
           </p>
         </div>
@@ -174,47 +174,47 @@ export function CTSizingCanvas({ inputs }: { inputs: CTSizingInputs }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="p-4 bg-[#0a0f18] border border-white/[0.06] rounded-xl relative overflow-hidden">
+        <div className="p-4 bg-card border border-border rounded-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
             <ShieldAlert className="w-32 h-32 text-blue-500" />
           </div>
-          <h3 className="text-[13px] font-bold text-white mb-4">Calculation Breakdown</h3>
+          <h3 className="text-[13px] font-bold text-foreground mb-4">Calculation Breakdown</h3>
           <div className="space-y-3 relative z-10">
-            <div className="flex justify-between items-center py-2 border-b border-white/[0.06]">
-              <span className="text-[12px] text-slate-400">Secondary Fault Current (I_s)</span>
-              <span className="text-[13px] text-white font-mono">{results.secondaryFaultCurrentA.toFixed(1)} A</span>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-[12px] text-muted-foreground">Secondary Fault Current (I_s)</span>
+              <span className="text-[13px] text-foreground font-mono">{results.secondaryFaultCurrentA.toFixed(1)} A</span>
             </div>
-            <div className="flex justify-between items-center py-2 border-b border-white/[0.06]">
-              <span className="text-[12px] text-slate-400">Lead Resistance (R_l)</span>
-              <span className="text-[13px] text-white font-mono">{results.leadResistanceOhm.toFixed(3)} Ω</span>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-[12px] text-muted-foreground">Lead Resistance (R_l)</span>
+              <span className="text-[13px] text-foreground font-mono">{results.leadResistanceOhm.toFixed(3)} Ω</span>
             </div>
-            <div className="flex justify-between items-center py-2 border-b border-white/[0.06]">
-              <span className="text-[12px] text-slate-400">Relay Resistance (R_b)</span>
-              <span className="text-[13px] text-white font-mono">{results.relayResistanceOhm.toFixed(3)} Ω</span>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-[12px] text-muted-foreground">Relay Resistance (R_b)</span>
+              <span className="text-[13px] text-foreground font-mono">{results.relayResistanceOhm.toFixed(3)} Ω</span>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-[12px] text-slate-400">Required ALF</span>
-              <span className="text-[13px] text-white font-mono">{results.alfRequired.toFixed(1)}</span>
+              <span className="text-[12px] text-muted-foreground">Required ALF</span>
+              <span className="text-[13px] text-foreground font-mono">{results.alfRequired.toFixed(1)}</span>
             </div>
           </div>
         </div>
 
-        <div className="p-4 bg-[#0a0f18] border border-white/[0.06] rounded-xl flex flex-col items-center justify-center relative overflow-hidden">
+        <div className="p-4 bg-card border border-border rounded-xl flex flex-col items-center justify-center relative overflow-hidden">
            {results.isAdequate ? (
              <div className="text-center">
                <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
                  <CheckCircle2 className="w-8 h-8 text-emerald-400" />
                </div>
-               <h3 className="text-lg font-bold text-white">CT Design Pass</h3>
-               <p className="text-[13px] text-slate-400 mt-2 max-w-[250px]">The estimated actual knee point voltage is sufficient to prevent saturation during maximum fault current.</p>
+               <h3 className="text-lg font-bold text-foreground">CT Design Pass</h3>
+               <p className="text-[13px] text-muted-foreground mt-2 max-w-[250px]">The estimated actual knee point voltage is sufficient to prevent saturation during maximum fault current.</p>
              </div>
            ) : (
              <div className="text-center">
                <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/20">
                  <XCircle className="w-8 h-8 text-red-400" />
                </div>
-               <h3 className="text-lg font-bold text-white">CT Saturation Risk</h3>
-               <p className="text-[13px] text-slate-400 mt-2 max-w-[250px]">The required knee point voltage exceeds the estimated capability. Increase CT core size, reduce lead length, or lower burden.</p>
+               <h3 className="text-lg font-bold text-foreground">CT Saturation Risk</h3>
+               <p className="text-[13px] text-muted-foreground mt-2 max-w-[250px]">The required knee point voltage exceeds the estimated capability. Increase CT core size, reduce lead length, or lower burden.</p>
              </div>
            )}
         </div>

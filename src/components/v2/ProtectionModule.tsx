@@ -20,11 +20,11 @@ function InputField({ label, value, unit, onChange, linked, linkSource, step = 1
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-1.5">
-        <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">{label}</label>
+        <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</label>
         {linked && (
           <div className="group relative">
             <Link2 className="w-3 h-3 text-teal-400" />
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-slate-800 border border-white/10 rounded-md text-[10px] text-teal-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-popover border border-border rounded-md text-[10px] text-teal-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
               Linked from {linkSource}
             </div>
           </div>
@@ -42,9 +42,9 @@ function InputField({ label, value, unit, onChange, linked, linkSource, step = 1
             if (!isNaN(parsed)) onChange(parsed);
           }}
           onBlur={() => { setIsFocused(false); setLocalValue(String(value)); }}
-          className="flex-1 min-w-0 bg-[#0a0f18] border border-white/[0.06] rounded-lg px-3 py-2 text-[13px] font-mono text-white focus:outline-none focus:border-blue-500/30 transition-colors"
+          className="flex-1 min-w-0 bg-card border border-border rounded-lg px-3 py-2 text-[13px] font-mono text-foreground focus:outline-none focus:border-blue-500/30 transition-colors"
         />
-        {unit && <span className="text-[11px] font-semibold text-slate-500 px-2 py-1 bg-white/[0.03] rounded-md">{unit}</span>}
+        {unit && <span className="text-[11px] font-semibold text-muted-foreground px-2 py-1 bg-accent/50 rounded-md">{unit}</span>}
       </div>
     </div>
   );
@@ -56,11 +56,11 @@ function SelectField({ label, value, options, onChange }: {
 }) {
   return (
     <div className="space-y-1">
-      <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">{label}</label>
+      <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{label}</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-[#0a0f18] border border-white/[0.06] rounded-lg px-3 py-2 text-[13px] font-mono text-white focus:outline-none focus:border-blue-500/30 cursor-pointer"
+        className="w-full bg-card border border-border rounded-lg px-3 py-2 text-[13px] font-mono text-foreground focus:outline-none focus:border-blue-500/30 cursor-pointer"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>{o.label}</option>
@@ -83,13 +83,13 @@ function Section({ title, accent, defaultOpen = true, children }: {
   };
 
   return (
-    <div className="border-b border-white/[0.06] last:border-0">
+    <div className="border-b border-border last:border-0">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/[0.02] transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 hover:hover:bg-accent/30 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <div className={`w-1 h-3 rounded-full border border-white/10 ${accentColors[accent].replace("text-", "bg-").replace("border-", "")} opacity-50`} />
+          <div className={`w-1 h-3 rounded-full border border-border ${accentColors[accent].replace("text-", "bg-").replace("border-", "")} opacity-50`} />
           <span className={`text-[11px] font-bold uppercase tracking-wider ${accentColors[accent].split(" ")[0]}`}>
             {title}
           </span>
@@ -127,12 +127,12 @@ export function ProtectionInspector({ inputs, onUpdate, hasLinkedFault }: {
 }) {
   return (
     <div className="h-full flex flex-col">
-      <div className="px-4 py-3 border-b border-white/[0.06] shrink-0">
-        <h3 className="text-[13px] font-bold text-white flex items-center gap-1.5">
+      <div className="px-4 py-3 border-b border-border shrink-0">
+        <h3 className="text-[13px] font-bold text-foreground flex items-center gap-1.5">
           <ShieldAlert className="w-4 h-4 text-blue-400" />
           Protection Parameters
         </h3>
-        <p className="text-[10px] text-slate-600 mt-0.5">IEC 60255 IDMT Curves</p>
+        <p className="text-[10px] text-muted-foreground/80 mt-0.5">IEC 60255 IDMT Curves</p>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar">
@@ -184,28 +184,28 @@ export function ProtectionCanvas({ inputs }: { inputs: ProtectionInputs }) {
     <div className="p-6 space-y-6 max-w-5xl mx-auto pb-20">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <GitCompare className="w-5 h-5 text-blue-500" />
             Protection Coordination (TCC)
           </h1>
-          <p className="text-[13px] text-slate-400 mt-1.5">
+          <p className="text-[13px] text-muted-foreground mt-1.5">
             Time-Current Characteristic log-log curves for discrimination margin
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <div className="p-4 bg-[#0a0f18] border border-white/[0.06] rounded-xl flex flex-col items-center justify-center">
+        <div className="p-4 bg-card border border-border rounded-xl flex flex-col items-center justify-center">
            <div className="text-[10px] text-teal-400 uppercase tracking-wider font-bold mb-1">Downstream Trip</div>
-           <div className="text-[22px] font-mono font-bold text-white">{results.downstream.tripTimeS === Infinity ? "No Trip" : results.downstream.tripTimeS.toFixed(3)} s</div>
+           <div className="text-[22px] font-mono font-bold text-foreground">{results.downstream.tripTimeS === Infinity ? "No Trip" : results.downstream.tripTimeS.toFixed(3)} s</div>
         </div>
-        <div className="p-4 bg-[#0a0f18] border border-white/[0.06] rounded-xl flex flex-col items-center justify-center">
+        <div className="p-4 bg-card border border-border rounded-xl flex flex-col items-center justify-center">
            <div className="text-[10px] text-blue-400 uppercase tracking-wider font-bold mb-1">Upstream Trip</div>
-           <div className="text-[22px] font-mono font-bold text-white">{results.upstream.tripTimeS === Infinity ? "No Trip" : results.upstream.tripTimeS.toFixed(3)} s</div>
+           <div className="text-[22px] font-mono font-bold text-foreground">{results.upstream.tripTimeS === Infinity ? "No Trip" : results.upstream.tripTimeS.toFixed(3)} s</div>
         </div>
         <div className={`p-4 border rounded-xl flex flex-col items-center justify-center ${results.isCoordinated ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
-           <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1">Discrimination Margin (Δt)</div>
-           <div className="text-[22px] font-mono font-bold text-white">{results.discriminationMarginS.toFixed(3)} s</div>
+           <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold mb-1">Discrimination Margin (Δt)</div>
+           <div className="text-[22px] font-mono font-bold text-foreground">{results.discriminationMarginS.toFixed(3)} s</div>
            <div className={`text-[10px] font-semibold mt-1 ${results.isCoordinated ? 'text-emerald-400' : 'text-red-400'}`}>
              {results.isCoordinated ? 'Coordinated' : 'Risk of miscoordination'}
            </div>
@@ -213,14 +213,14 @@ export function ProtectionCanvas({ inputs }: { inputs: ProtectionInputs }) {
       </div>
 
       {/* TCC Graph */}
-      <div className="p-4 bg-[#0a0f18] border border-white/[0.06] rounded-xl">
+      <div className="p-4 bg-card border border-border rounded-xl">
         <div className="flex gap-4 mb-4 justify-center">
-          <div className="flex items-center gap-2"><div className="w-3 h-1 bg-teal-500" /> <span className="text-xs text-slate-400">Downstream (Primary)</span></div>
-          <div className="flex items-center gap-2"><div className="w-3 h-1 bg-blue-500" /> <span className="text-xs text-slate-400">Upstream (Backup)</span></div>
-          <div className="flex items-center gap-2"><div className="w-1 h-3 border-l border-dashed border-rose-500" /> <span className="text-xs text-slate-400">Fault Current</span></div>
+          <div className="flex items-center gap-2"><div className="w-3 h-1 bg-teal-500" /> <span className="text-xs text-muted-foreground">Downstream (Primary)</span></div>
+          <div className="flex items-center gap-2"><div className="w-3 h-1 bg-blue-500" /> <span className="text-xs text-muted-foreground">Upstream (Backup)</span></div>
+          <div className="flex items-center gap-2"><div className="w-1 h-3 border-l border-dashed border-rose-500" /> <span className="text-xs text-muted-foreground">Fault Current</span></div>
         </div>
 
-        <div className="relative w-full max-w-[600px] mx-auto aspect-[3/2] bg-[#05080f] border-b border-l border-white/10 p-2">
+        <div className="relative w-full max-w-[600px] mx-auto aspect-[3/2] bg-background border-b border-l border-border p-2">
           <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-full overflow-visible">
              {/* Log-Log grid lines (Simplified for UI) */}
              {[10, 100, 1000, 10000, 100000].filter(x => x > minI && x < maxI).map(x => (
@@ -254,8 +254,8 @@ export function ProtectionCanvas({ inputs }: { inputs: ProtectionInputs }) {
              )}
           </svg>
         </div>
-        <div className="text-center mt-6 text-[11px] text-slate-500 uppercase tracking-widest">Current (A)</div>
-        <div className="absolute top-1/2 left-0 -translate-x-1/2 -rotate-90 origin-center text-[11px] text-slate-500 uppercase tracking-widest hidden md:block">Time (s)</div>
+        <div className="text-center mt-6 text-[11px] text-muted-foreground uppercase tracking-widest">Current (A)</div>
+        <div className="absolute top-1/2 left-0 -translate-x-1/2 -rotate-90 origin-center text-[11px] text-muted-foreground uppercase tracking-widest hidden md:block">Time (s)</div>
       </div>
     </div>
   );

@@ -24,13 +24,13 @@ export function WhatIfPanel({ baseInputs, baseResults }: WhatIfPanelProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Sliders Panel */}
-        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5 space-y-6">
-          <h3 className="text-[13px] font-semibold text-white uppercase tracking-wider mb-2">Parametric Modifiers</h3>
+        <div className="bg-card border border-border rounded-xl p-5 space-y-6">
+          <h3 className="text-[13px] font-semibold text-foreground uppercase tracking-wider mb-2">Parametric Modifiers</h3>
           
           <div>
-            <div className="flex justify-between text-[12px] text-slate-300 mb-2">
+            <div className="flex justify-between text-[12px] text-muted-foreground mb-2">
               <span>Short Circuit Current (I<sub>k3</sub>)</span>
-              <span className="font-mono text-white">{(ik3 / 1000).toFixed(1)} kA</span>
+              <span className="font-mono text-foreground">{(ik3 / 1000).toFixed(1)} kA</span>
             </div>
             <input 
               type="range" min="20000" max="100000" step="1000" 
@@ -40,9 +40,9 @@ export function WhatIfPanel({ baseInputs, baseResults }: WhatIfPanelProps) {
           </div>
 
           <div>
-            <div className="flex justify-between text-[12px] text-slate-300 mb-2">
+            <div className="flex justify-between text-[12px] text-muted-foreground mb-2">
               <span>Span Length (l)</span>
-              <span className="font-mono text-white">{lspan} m</span>
+              <span className="font-mono text-foreground">{lspan} m</span>
             </div>
             <input 
               type="range" min="30" max="120" step="1" 
@@ -52,9 +52,9 @@ export function WhatIfPanel({ baseInputs, baseResults }: WhatIfPanelProps) {
           </div>
 
           <div>
-            <div className="flex justify-between text-[12px] text-slate-300 mb-2">
+            <div className="flex justify-between text-[12px] text-muted-foreground mb-2">
               <span>Phase Spacing (a<sub>ph</sub>)</span>
-              <span className="font-mono text-white">{aph.toFixed(1)} m</span>
+              <span className="font-mono text-foreground">{aph.toFixed(1)} m</span>
             </div>
             <input 
               type="range" min="3" max="12" step="0.5" 
@@ -64,9 +64,9 @@ export function WhatIfPanel({ baseInputs, baseResults }: WhatIfPanelProps) {
           </div>
 
           <div>
-            <div className="flex justify-between text-[12px] text-slate-300 mb-2">
+            <div className="flex justify-between text-[12px] text-muted-foreground mb-2">
               <span>Bundle Sub-conductors (n<sub>c</sub>)</span>
-              <span className="font-mono text-white">{nc}</span>
+              <span className="font-mono text-foreground">{nc}</span>
             </div>
             <div className="flex gap-2">
               {[1, 2, 3, 4].map(n => (
@@ -74,7 +74,7 @@ export function WhatIfPanel({ baseInputs, baseResults }: WhatIfPanelProps) {
                   key={n}
                   onClick={() => setNc(n)}
                   className={`flex-1 py-1.5 text-[12px] font-medium rounded-lg border transition-all ${
-                    nc === n ? "bg-blue-500/20 border-blue-500/40 text-blue-300" : "bg-transparent border-white/10 text-slate-400 hover:bg-white/5"
+                    nc === n ? "bg-blue-500/20 border-blue-500/40 text-blue-300" : "bg-transparent border-border text-muted-foreground hover:bg-accent/50"
                   }`}
                 >
                   {n === 1 ? 'Single' : n === 2 ? 'Twin' : n === 3 ? 'Tri' : 'Quad'}
@@ -88,14 +88,14 @@ export function WhatIfPanel({ baseInputs, baseResults }: WhatIfPanelProps) {
             setLspan(baseInputs.lspan);
             setAph(baseInputs.aph);
             setNc(baseInputs.nc);
-          }} className="w-full py-2 text-[12px] text-slate-400 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all">
+          }} className="w-full py-2 text-[12px] text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-accent/50 transition-all">
             Reset to Base Parameters
           </button>
         </div>
 
         {/* Results Panel */}
-        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5 flex flex-col">
-          <h3 className="text-[13px] font-semibold text-white uppercase tracking-wider mb-4">Live Results Comparison</h3>
+        <div className="bg-card border border-border rounded-xl p-5 flex flex-col">
+          <h3 className="text-[13px] font-semibold text-foreground uppercase tracking-wider mb-4">Live Results Comparison</h3>
           
           <div className="space-y-4 flex-1">
             <ResultRow label="Max Tensile Force (Ftd)" base={baseResults.Ftd} whatIf={whatIfResults.Ftd} unit="kN" />
@@ -107,12 +107,12 @@ export function WhatIfPanel({ baseInputs, baseResults }: WhatIfPanelProps) {
               unit="kN" 
             />
             
-            <div className="pt-4 border-t border-white/[0.06]" />
+            <div className="pt-4 border-t border-border" />
             <ResultRow label="Governing Force" base={baseResults.Fmax} whatIf={whatIfResults.Fmax} unit="kN" highlight />
             
-            <div className="pt-4 border-t border-white/[0.06]" />
+            <div className="pt-4 border-t border-border" />
             <div className="flex justify-between items-center text-[13px]">
-              <span className="text-slate-400">Clearance Status</span>
+              <span className="text-muted-foreground">Clearance Status</span>
               <div className="flex items-center gap-4">
                 <div className="flex flex-col items-end">
                   <span className="text-[10px] text-slate-500">Base</span>
@@ -134,15 +134,15 @@ export function WhatIfPanel({ baseInputs, baseResults }: WhatIfPanelProps) {
 function ResultRow({ label, base, whatIf, unit, highlight }: { label: string, base: number, whatIf: number, unit: string, highlight?: boolean }) {
   const diff = whatIf - base;
   const pct = base > 0 ? (diff / base) * 100 : 0;
-  const color = highlight ? "text-white font-semibold" : "text-white";
+  const color = highlight ? "text-foreground font-semibold" : "text-foreground";
   
   return (
     <div className="flex justify-between items-center text-[13px]">
-      <span className="text-slate-400">{label}</span>
+      <span className="text-muted-foreground">{label}</span>
       <div className="flex items-center gap-4 font-mono">
         <div className="flex flex-col items-end w-20">
           <span className="text-[10px] text-slate-500 font-sans">Base</span>
-          <span className="text-slate-300">{(base / 1000).toFixed(1)}</span>
+          <span className="text-muted-foreground">{(base / 1000).toFixed(1)}</span>
         </div>
         <div className="flex flex-col items-end w-24">
           <span className="text-[10px] text-slate-500 font-sans">What-If</span>

@@ -86,9 +86,9 @@ export function GraphsPanel({ inputs, results }: GraphsPanelProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Swing Diagram */}
-        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
-          <h3 className="text-[12px] font-semibold text-white uppercase tracking-wider mb-4">Conductor Swing Diagram</h3>
-          <div className="w-full relative bg-[#0a0f18] rounded-lg border border-white/[0.05] overflow-hidden">
+        <div className="bg-card border border-border rounded-xl p-5">
+          <h3 className="text-[12px] font-semibold text-foreground uppercase tracking-wider mb-4">Conductor Swing Diagram</h3>
+          <div className="w-full relative bg-background rounded-lg border border-border overflow-hidden">
             <svg viewBox={`0 0 ${vW} ${vH}`} className="w-full h-auto text-[10px] font-mono fill-slate-400">
               {/* Grid lines */}
               <line x1={cx} y1={cy} x2={cx} y2={vH} stroke="#ffffff" strokeOpacity="0.1" strokeDasharray="4 4" />
@@ -116,9 +116,9 @@ export function GraphsPanel({ inputs, results }: GraphsPanelProps) {
         </div>
 
         {/* Clearance Envelope */}
-        <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
-          <h3 className="text-[12px] font-semibold text-white uppercase tracking-wider mb-4">Phase Clearance</h3>
-          <div className="w-full relative bg-[#0a0f18] rounded-lg border border-white/[0.05] overflow-hidden">
+        <div className="bg-card border border-border rounded-xl p-5">
+          <h3 className="text-[12px] font-semibold text-foreground uppercase tracking-wider mb-4">Phase Clearance</h3>
+          <div className="w-full relative bg-background rounded-lg border border-border overflow-hidden">
             <svg viewBox={`0 0 ${cVW} ${cVH}`} className="w-full h-auto text-[10px] font-mono fill-slate-400">
               {/* Axis */}
               <line x1={40} y1={cVH - 20} x2={cVW - 10} y2={cVH - 20} stroke="#ffffff" strokeOpacity="0.2" />
@@ -142,9 +142,9 @@ export function GraphsPanel({ inputs, results }: GraphsPanelProps) {
       </div>
 
       {/* Force Timeline */}
-      <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5">
-        <h3 className="text-[12px] font-semibold text-white uppercase tracking-wider mb-4">Force Timeline During Fault (Approximate Envelope)</h3>
-        <div className="w-full relative bg-[#0a0f18] rounded-lg border border-white/[0.05] overflow-hidden">
+      <div className="bg-card border border-border rounded-xl p-5">
+        <h3 className="text-[12px] font-semibold text-foreground uppercase tracking-wider mb-4">Force Timeline During Fault (Approximate Envelope)</h3>
+        <div className="w-full relative bg-background rounded-lg border border-border overflow-hidden">
           <svg viewBox={`0 0 ${tVW} ${tVH}`} className="w-full h-auto text-[10px] font-mono fill-slate-400">
             {/* Axis */}
             <line x1={30} y1={tVH - 20} x2={tVW - 10} y2={tVH - 20} stroke="#ffffff" strokeOpacity="0.2" />

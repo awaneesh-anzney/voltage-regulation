@@ -99,7 +99,7 @@ function interpolateV2(k: number, v1: number): number {
 // ────────────────────────────────────────────────────────────
 // Chart coordinate system
 // ────────────────────────────────────────────────────────────
-const VW = 720, VH = 380;
+const VW = 720, VH = 280;
 const ML = 58, MR = 15, MT = 20, MB = 42;
 const CW = VW - ML - MR, CH = VH - MT - MB;
 const V1_MIN = 0, V1_MAX = 8;
@@ -147,13 +147,13 @@ export function V2ChartPanel({ inputs, results }: V2ChartPanelProps) {
   const labelRight = dotX < ML + CW - 110;
 
   return (
-    <div className="bg-[#111827] border border-white/[0.06] rounded-xl p-5 relative overflow-hidden group hover:border-white/[0.1] transition-all">
+    <div className="bg-card border border-border rounded-xl p-5 relative overflow-hidden group hover:border-border transition-all">
       <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
       {/* ── Header + v2 Readout ── */}
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
-          <h3 className="text-[12px] font-semibold text-white uppercase tracking-wider">
+          <h3 className="text-[12px] font-semibold text-foreground uppercase tracking-wider">
             IEC 60865-1 Fig.9 — v₂ Bundle Force Factor
           </h3>
           <p className="text-[11px] text-slate-500 mt-1 max-w-md">
@@ -161,7 +161,7 @@ export function V2ChartPanel({ inputs, results }: V2ChartPanelProps) {
             Curves from digitised IEC Fig.9 reference data.
           </p>
         </div>
-        <div className="bg-[#0a0f18] border border-emerald-500/20 rounded-xl px-5 py-3 text-center shrink-0 shadow-[0_0_20px_rgba(16,185,129,0.06)]">
+        <div className="bg-background border border-emerald-500/20 rounded-xl px-5 py-3 text-center shrink-0 shadow-[0_0_20px_rgba(16,185,129,0.06)]">
           <div className="text-[10px] text-emerald-400/70 font-medium tracking-wide">v₂ (read from graph)</div>
           <div className="text-[28px] font-mono font-bold text-emerald-400 leading-tight mt-0.5 tabular-nums">
             {v2Interp.toFixed(4)}
@@ -174,8 +174,8 @@ export function V2ChartPanel({ inputs, results }: V2ChartPanelProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
         <div>
           <div className="flex justify-between text-[11px] mb-1.5">
-            <span className="text-slate-400">
-              Peak factor <span className="text-white font-semibold">k</span> (from X/R)
+            <span className="text-muted-foreground">
+              Peak factor <span className="text-foreground font-semibold">k</span> (from X/R)
             </span>
             <span className="font-mono text-blue-400 font-medium tabular-nums">{kVal.toFixed(3)}</span>
           </div>
@@ -190,8 +190,8 @@ export function V2ChartPanel({ inputs, results }: V2ChartPanelProps) {
         </div>
         <div>
           <div className="flex justify-between text-[11px] mb-1.5">
-            <span className="text-slate-400">
-              Bundle parameter <span className="text-white font-semibold">v₁</span> (Eq.55)
+            <span className="text-muted-foreground">
+              Bundle parameter <span className="text-foreground font-semibold">v₁</span> (Eq.55)
             </span>
             <span className="font-mono text-blue-400 font-medium tabular-nums">{v1Val.toFixed(3)}</span>
           </div>
@@ -207,7 +207,7 @@ export function V2ChartPanel({ inputs, results }: V2ChartPanelProps) {
       </div>
 
       {/* ── SVG Chart ── */}
-      <div className="w-full bg-[#0a0f18] rounded-lg border border-white/[0.05] overflow-hidden">
+      <div className="w-full bg-background rounded-lg border border-border overflow-hidden">
         <svg viewBox={`0 0 ${VW} ${VH}`} className="w-full h-auto">
           {/* Grid lines */}
           {Array.from({ length: 9 }, (_, i) => i).map(v1 => (
@@ -299,9 +299,9 @@ export function V2ChartPanel({ inputs, results }: V2ChartPanelProps) {
       </div>
 
       {/* ── Info Panel ── */}
-      <div className="mt-3 px-4 py-3 rounded-xl bg-slate-800/40 border border-white/[0.04]">
-        <p className="text-[11px] text-slate-400 leading-relaxed">
-          <strong className="text-slate-300">How curves are computed</strong> — Each curve uses
+      <div className="mt-3 px-4 py-3 rounded-xl bg-slate-800/40 border border-border">
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
+          <strong className="text-muted-foreground">How curves are computed</strong> — Each curve uses
           digitised reference points from the published IEC 60865-1 Fig.9 chart, with
           T<sub>pi</sub> = l<sub>s</sub>/&#8730;(F<sub>st</sub>/(n<sub>c</sub>&#183;m&#8242;<sub>c</sub>)) as
           the sub-conductor half-period. The formula integrates the peak electromagnetic force
@@ -326,7 +326,7 @@ export function V2ChartPanel({ inputs, results }: V2ChartPanelProps) {
       <div className="flex justify-end mt-3">
         <button
           onClick={() => { setKVal(kInit); setV1Val(v1Init); }}
-          className="px-3 py-1.5 text-[11px] text-slate-400 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all cursor-pointer"
+          className="px-3 py-1.5 text-[11px] text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-accent/50 transition-all cursor-pointer"
         >
           Reset to Engine Values (k={engineK.toFixed(3)}, v₁={isBundle && isFinite(engineV1) ? engineV1.toFixed(3) : "N/A"})
         </button>
