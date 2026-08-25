@@ -100,7 +100,7 @@ export function ProjectManagerModule({
   const activeStudy = activeProject?.studies.find(s => s.id === activeStudyId);
 
   return (
-    <div className="p-6 max-w-[1400px] mx-auto space-y-6 h-[calc(100vh-80px)] flex flex-col">
+    <div className="p-4 md:p-6 max-w-[1400px] mx-auto space-y-6 md:h-[calc(100vh-80px)] flex flex-col h-full overflow-y-auto md:overflow-hidden">
       <div className="flex items-center justify-between shrink-0">
         <div>
           <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -114,10 +114,10 @@ export function ProjectManagerModule({
       </div>
 
       {/* 3-Column Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 min-h-0">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 min-h-0 pb-10 md:pb-0">
         
         {/* Column 1: Projects */}
-        <div className="bg-card border border-border rounded-xl flex flex-col overflow-hidden shadow-sm">
+        <div className="bg-card border border-border rounded-xl flex flex-col overflow-hidden shadow-sm min-h-[300px] md:min-h-0">
           <div className="px-4 py-3 bg-accent/30 border-b border-border flex items-center justify-between">
             <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <Library className="w-4 h-4" />
@@ -143,7 +143,7 @@ export function ProjectManagerModule({
                   </div>
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleDeleteProject(project); }}
-                    className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded cursor-pointer opacity-0 group-hover/project:opacity-100 transition-opacity shrink-0"
+                    className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded cursor-pointer opacity-100 md:opacity-0 md:group-hover/project:opacity-100 transition-opacity shrink-0"
                     title="Delete Project"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -155,7 +155,7 @@ export function ProjectManagerModule({
         </div>
 
         {/* Column 2: Studies */}
-        <div className="bg-card border border-border rounded-xl flex flex-col overflow-hidden shadow-sm">
+        <div className="bg-card border border-border rounded-xl flex flex-col overflow-hidden shadow-sm min-h-[300px] md:min-h-0">
           <div className="px-4 py-3 bg-accent/30 border-b border-border flex items-center justify-between">
             <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <FolderOpen className="w-4 h-4" />
@@ -181,7 +181,7 @@ export function ProjectManagerModule({
                   </div>
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleDeleteStudy(study, activeProject); }}
-                    className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded cursor-pointer opacity-0 group-hover/study:opacity-100 transition-opacity shrink-0"
+                    className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded cursor-pointer opacity-100 md:opacity-0 md:group-hover/study:opacity-100 transition-opacity shrink-0"
                     title="Delete Study"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -195,7 +195,7 @@ export function ProjectManagerModule({
         </div>
 
         {/* Column 3: Cases */}
-        <div className="bg-card border border-border rounded-xl flex flex-col overflow-hidden shadow-sm">
+        <div className="bg-card border border-border rounded-xl flex flex-col overflow-hidden shadow-sm min-h-[300px] md:min-h-0">
           <div className="px-4 py-3 bg-accent/30 border-b border-border flex items-center justify-between">
             <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <FileText className="w-4 h-4" />
@@ -226,7 +226,7 @@ export function ProjectManagerModule({
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover/case:opacity-100 transition-opacity">
+                  <div className="flex items-center justify-end gap-1.5 opacity-100 md:opacity-0 md:group-hover/case:opacity-100 transition-opacity mt-2 md:mt-0">
                     {!isSelected && (
                       <button 
                         onClick={() => onSetActiveCase(c.id)}

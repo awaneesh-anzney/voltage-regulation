@@ -85,6 +85,10 @@ export default function V2Page() {
   const [sidebarCollapsed, setSidebarCollapsedRaw] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
+  // ─── Mobile Responsiveness State ───
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mobileInspectorOpen, setMobileInspectorOpen] = useState(false);
+
   // Restore persisted UI state on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -98,9 +102,10 @@ export default function V2Page() {
   }, []);
 
   // Wrapped setters that persist to localStorage
-  const setActiveModule = useCallback((mod: ModuleId) => {
-    setActiveModuleRaw(mod);
-    try { localStorage.setItem("gridintel-v2-active-module", mod); } catch {}
+  const setActiveModule = useCallback((id: ModuleId) => {
+    setActiveModuleRaw(id);
+    if (typeof window !== "undefined") localStorage.setItem("gridintel-v2-active-module", id);
+    setMobileSidebarOpen(false); // Auto-close sidebar on mobile when navigating
   }, []);
 
   const setSidebarCollapsed = useCallback((val: boolean) => {
@@ -606,26 +611,55 @@ export default function V2Page() {
         onNewCase={handleNewCase}
         onSaveCase={handleSaveCase}
         onLoadCase={handleLoadCase}
+        onMobileSidebarToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+        onMobileInspectorToggle={() => setMobileInspectorOpen(!mobileInspectorOpen)}
+        showInspectorToggle={showInspector}
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
+        
+        {/* Mobile Backdrop for Sidebar */}
+        {mobileSidebarOpen && (
+          <div 
+            className="fixed inset-0 z-40 bg-black/50 md:hidden"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
+        )}
+
         {/* Left Sidebar */}
-        <Sidebar
-          activeModule={activeModule}
-          onModuleChange={setActiveModule}
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
+        <div className={`
+          absolute inset-y-0 left-0 z-50 transform transition-transform duration-300 md:relative md:translate-x-0 h-full
+          ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        `}>
+          <Sidebar
+            activeModule={activeModule}
+            onModuleChange={setActiveModule}
+            collapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
+        </div>
 
         {/* Center Canvas */}
-        <div className="flex-1 overflow-y-auto bg-background">
+        <div className="flex-1 overflow-y-auto bg-background min-w-0">
           {renderCanvas()}
         </div>
 
+        {/* Mobile Backdrop for Inspector */}
+        {mobileInspectorOpen && showInspector && (
+          <div 
+            className="fixed inset-0 z-40 bg-black/50 md:hidden"
+            onClick={() => setMobileInspectorOpen(false)}
+          />
+        )}
+
         {/* Right Inspector */}
         {showInspector && (
-          <div className="w-[320px] shrink-0 border-l border-border bg-background overflow-hidden">
+          <div className={`
+            absolute inset-y-0 right-0 z-50 transform transition-transform duration-300 md:relative md:translate-x-0 h-full
+            ${mobileInspectorOpen ? "translate-x-0" : "translate-x-full"}
+            w-[320px] shrink-0 border-l border-border bg-background overflow-y-auto shadow-2xl md:shadow-none
+          `}>
             {renderInspector()}
           </div>
         )}

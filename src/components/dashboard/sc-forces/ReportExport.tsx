@@ -265,75 +265,78 @@ export function ReportExport({ inputs, results }: ReportExportProps) {
         </div>
 
         <h2 className="text-lg font-bold mb-4 uppercase">1. INPUT PARAMETERS</h2>
-        
-        <p className="mb-2 text-sm">1.1 Basic System Parameters:</p>
-        <table className="pdf-table">
-          <thead>
-            <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Short Circuit Current (I<sub>k3</sub>)</td><td>{inputs.ik3}</td><td>A</td></tr>
-            <tr><td>System X/R Ratio</td><td>{inputs.xr}</td><td>-</td></tr>
-            <tr><td>Duration for SC (T<sub>k1</sub>)</td><td>{inputs.tk1}</td><td>s</td></tr>
-            <tr><td>System Voltage (Vsys)</td><td>{inputs.vsys}</td><td>V</td></tr>
-            <tr><td>System Frequency (f)</td><td>{inputs.freq || 50}</td><td>Hz</td></tr>
-            <tr><td>Distance between Support (l)</td><td>{inputs.lspan}</td><td>m</td></tr>
-            <tr><td>Insulator String Length (l<sub>i</sub>)</td><td>{inputs.li}</td><td>m</td></tr>
-            <tr><td>Girder Width (D<sub>g</sub>)</td><td>{inputs.dg}</td><td>m</td></tr>
-            <tr><td>Phase Spacing (a<sub>ph</sub>)</td><td>{inputs.aph}</td><td>m</td></tr>
-            <tr><td>Min. Phase to Phase Clearance (Cl<sub>ph-ph</sub>)</td><td>{inputs.clph}</td><td>m</td></tr>
-            <tr><td>Stringing Height (H)</td><td>{inputs.H}</td><td>m</td></tr>
-            <tr><td>Static Tension per Phase (F<sub>st</sub>)</td><td>{inputs.fst_kg}</td><td>kg</td></tr>
-          </tbody>
-        </table>
-
-        <p className="mb-2 text-sm">1.2 Conductor Details:</p>
-        <table className="pdf-table">
-          <thead>
-            <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Conductor Designation</td><td>{inputs.conductorName || 'AAC BULL'}</td><td>-</td></tr>
-            <tr><td>Number of Sub-conductor (n<sub>c</sub>)</td><td>{inputs.nc}</td><td>-</td></tr>
-            <tr><td>Distance between Sub-conductors (a<sub>s</sub>)</td><td>{inputs.as}</td><td>m</td></tr>
-            <tr><td>Area of Sub-conductor (A<sub>s</sub>)</td><td>{inputs.As}</td><td>mm²</td></tr>
-            <tr><td>Diameter of Sub-conductor (d<sub>s</sub>)</td><td>{inputs.ds}</td><td>mm</td></tr>
-            <tr><td>Mass of Sub-conductor (m<sub>c</sub>)</td><td>{inputs.mc}</td><td>kg/m</td></tr>
-          </tbody>
-        </table>
-
-        {/* PAGE 2 */}
-        <div className="page-break"></div>
-        <div className="text-center mb-8 border-b border-black pb-2">
-          <p className="text-[11px]">Short Circuit Forces Calculation<br/>As per IEC 60865-1 & IEC 61936-1</p>
+        <div className="break-inside-avoid">
+          <p className="mb-2 text-sm font-semibold">1.1 Basic System Parameters:</p>
+          <table className="pdf-table" style={{ maxWidth: '70%' }}>
+            <thead>
+              <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Short Circuit Current (I<sub>k3</sub>)</td><td>{inputs.ik3}</td><td>A</td></tr>
+              <tr><td>System X/R Ratio</td><td>{inputs.xr}</td><td>-</td></tr>
+              <tr><td>Duration for SC (T<sub>k1</sub>)</td><td>{inputs.tk1}</td><td>s</td></tr>
+              <tr><td>System Voltage (Vsys)</td><td>{inputs.vsys}</td><td>V</td></tr>
+              <tr><td>System Frequency (f)</td><td>{inputs.freq || 50}</td><td>Hz</td></tr>
+              <tr><td>Distance between Support (l)</td><td>{inputs.lspan}</td><td>m</td></tr>
+              <tr><td>Insulator String Length (l<sub>i</sub>)</td><td>{inputs.li}</td><td>m</td></tr>
+              <tr><td>Girder Width (D<sub>g</sub>)</td><td>{inputs.dg}</td><td>m</td></tr>
+              <tr><td>Phase Spacing (a<sub>ph</sub>)</td><td>{inputs.aph}</td><td>m</td></tr>
+              <tr><td>Min. Phase to Phase Clearance (Cl<sub>ph-ph</sub>)</td><td>{inputs.clph}</td><td>m</td></tr>
+              <tr><td>Stringing Height (H)</td><td>{inputs.H}</td><td>m</td></tr>
+              <tr><td>Static Tension per Phase (F<sub>st</sub>)</td><td>{inputs.fst_kg}</td><td>kg</td></tr>
+            </tbody>
+          </table>
         </div>
 
-        <p className="mb-2 text-sm">1.3 Spacer Details:</p>
-        <table className="pdf-table">
-          <thead>
-            <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Spacer Span (l<sub>s</sub>)</td><td>{inputs.ls}</td><td>m</td></tr>
-            <tr><td>Spacer Mass (m<sub>s</sub>)</td><td>{inputs.ms}</td><td>kg</td></tr>
-          </tbody>
-        </table>
+        <div className="space-y-6">
+            <div className="break-inside-avoid">
+              <p className="mb-2 text-sm font-semibold">1.2 Conductor Details:</p>
+              <table className="pdf-table" style={{ maxWidth: '70%' }}>
+                <thead>
+                  <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Conductor Designation</td><td>{inputs.conductorName || 'AAC BULL'}</td><td>-</td></tr>
+                  <tr><td>Number of Sub-conductor (n<sub>c</sub>)</td><td>{inputs.nc}</td><td>-</td></tr>
+                  <tr><td>Distance between Sub-conductors (a<sub>s</sub>)</td><td>{inputs.as}</td><td>m</td></tr>
+                  <tr><td>Area of Sub-conductor (A<sub>s</sub>)</td><td>{inputs.As}</td><td>mm²</td></tr>
+                  <tr><td>Diameter of Sub-conductor (d<sub>s</sub>)</td><td>{inputs.ds}</td><td>mm</td></tr>
+                  <tr><td>Mass of Sub-conductor (m<sub>c</sub>)</td><td>{inputs.mc}</td><td>kg/m</td></tr>
+                </tbody>
+              </table>
+            </div>
 
-        <p className="mb-2 text-sm">1.4 Dropper Details:</p>
-        <table className="pdf-table">
-          <thead>
-            <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Additional Mass per Phase (m<sub>d</sub>)</td><td>{inputs.md}</td><td>kg</td></tr>
-            <tr><td>Height Difference (h)</td><td>{inputs.h_drop}</td><td>m</td></tr>
-            <tr><td>Width of Dropper (w)</td><td>{inputs.w_drop}</td><td>m</td></tr>
-            <tr><td>Dropper Plane</td><td>{inputs.dropperPlane === 'perpendicular' ? 'Perpendicular' : 'Parallel'}</td><td>-</td></tr>
-          </tbody>
-        </table>
+            <div className="break-inside-avoid">
+              <p className="mb-2 text-sm font-semibold">1.3 Spacer Details:</p>
+              <table className="pdf-table" style={{ maxWidth: '70%' }}>
+                <thead>
+                  <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Spacer Span (l<sub>s</sub>)</td><td>{inputs.ls}</td><td>m</td></tr>
+                  <tr><td>Spacer Mass (m<sub>s</sub>)</td><td>{inputs.ms}</td><td>kg</td></tr>
+                </tbody>
+              </table>
+            </div>
 
-        <p className="mb-2 text-sm">1.5 Material Constants:</p>
-        <table className="pdf-table">
+            <div className="break-inside-avoid">
+              <p className="mb-2 text-sm font-semibold">1.4 Dropper Details:</p>
+              <table className="pdf-table" style={{ maxWidth: '70%' }}>
+                <thead>
+                  <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Additional Mass per Phase (m<sub>d</sub>)</td><td>{inputs.md}</td><td>kg</td></tr>
+                  <tr><td>Height Difference (h)</td><td>{inputs.h_drop}</td><td>m</td></tr>
+                  <tr><td>Width of Dropper (w)</td><td>{inputs.w_drop}</td><td>m</td></tr>
+                  <tr><td>Dropper Plane</td><td>{inputs.dropperPlane === 'perpendicular' ? 'Perpendicular' : 'Parallel'}</td><td>-</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        <p className="mb-2 text-sm font-semibold mt-6">1.5 Material Constants:</p>
+        <table className="pdf-table" style={{ maxWidth: '70%' }}>
           <thead>
             <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
           </thead>

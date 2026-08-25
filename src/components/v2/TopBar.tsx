@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Search, Link2, Pencil, Command, RotateCcw, Zap, Sun, Moon, FilePlus, Save, FolderOpen, ChevronDown } from "lucide-react";
+import { Search, Link2, Pencil, Command, RotateCcw, Zap, Sun, Moon, FilePlus, Save, FolderOpen, ChevronDown, Menu, PanelRight } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState as useReactState } from "react";
 import type { ModuleId } from "./Sidebar";
@@ -40,6 +40,9 @@ interface TopBarProps {
   onNewCase?: () => void;
   onSaveCase?: () => void;
   onLoadCase?: (file: File) => void;
+  onMobileSidebarToggle?: () => void;
+  onMobileInspectorToggle?: () => void;
+  showInspectorToggle?: boolean;
 }
 
 export function TopBar({
@@ -47,6 +50,7 @@ export function TopBar({
   systemVoltage_kV, baseMVA, activeLinksCount, onCommandPalette,
   canUndo, canRedo, onUndo, onRedo,
   onNewCase, onSaveCase, onLoadCase,
+  onMobileSidebarToggle, onMobileInspectorToggle, showInspectorToggle
 }: TopBarProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(projectName);
@@ -80,12 +84,21 @@ export function TopBar({
   };
 
   return (
-    <div className="h-14 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl px-5 gap-4 shrink-0">
+    <div className="h-14 flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-xl px-5 gap-4 shrink-0 relative z-50">
       
       {/* Left: Logo & Breadcrumb */}
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-2 sm:gap-6 shrink-0">
+        
+        {/* Mobile Hamburger */}
+        <button 
+          onClick={onMobileSidebarToggle}
+          className="md:hidden p-1.5 -ml-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         {/* Logo */}
-        <div className="flex items-center gap-2.5">
+        <div className="hidden sm:flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center shrink-0">
             <Zap className="w-4 h-4 text-foreground fill-white" />
           </div>
@@ -156,21 +169,21 @@ export function TopBar({
         <div className="w-px h-4 bg-border hidden sm:block" />
 
         {/* Breadcrumb */}
-        <div className="flex items-center gap-1.5 text-[13px] min-w-0 font-medium">
+        <div className="hidden sm:flex items-center gap-1.5 text-[13px] min-w-0 font-medium">
           {bc.domain ? (
             <>
-              <span className="text-muted-foreground">{bc.label === 'Home' ? 'Home' : bc.domain}</span>
+              <span className="text-muted-foreground truncate">{bc.label === 'Home' ? 'Home' : bc.domain}</span>
               <span className="text-muted-foreground/50 mx-0.5">/</span>
               <span className="text-foreground truncate">{bc.label}</span>
             </>
           ) : (
-            <span className="text-foreground">{bc.label}</span>
+            <span className="text-foreground truncate">{bc.label}</span>
           )}
         </div>
       </div>
 
       {/* Project & Case Name (Center) */}
-      <div className="flex-1 flex justify-center">
+      <div className="flex-1 flex justify-end sm:justify-center min-w-0 px-2">
         {isEditing ? (
           <input
             type="text"
@@ -179,27 +192,31 @@ export function TopBar({
             onBlur={handleSave}
             onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") { setEditValue(projectName); setIsEditing(false); } }}
             autoFocus
-            className="bg-accent/80 border border-blue-500/30 rounded-lg px-3 py-1 text-[13px] text-foreground font-medium text-center focus:outline-none focus:ring-1 focus:ring-blue-500/30 w-72"
+            className="bg-accent/80 border border-blue-500/30 rounded-lg px-3 py-1 text-[13px] text-foreground font-medium text-center focus:outline-none focus:ring-1 focus:ring-blue-500/30 w-32 sm:w-72 min-w-0"
           />
         ) : (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
             <button
               onClick={() => { setEditValue(projectName); setIsEditing(true); }}
-              className="flex items-center gap-1.5 text-[13px] text-foreground/90 hover:text-foreground transition-colors cursor-pointer group"
+              className="flex items-center gap-1.5 text-[13px] text-foreground/90 hover:text-foreground transition-colors cursor-pointer group min-w-0"
             >
-              <span className="font-medium">{projectName}</span>
-              <Pencil className="w-3 h-3 text-muted-foreground/80 group-hover:text-blue-400 transition-colors" />
+              <span className="font-medium truncate min-w-0">{projectName}</span>
+              <Pencil className="w-3 h-3 text-muted-foreground/80 group-hover:text-blue-400 transition-colors shrink-0" />
             </button>
             {activeStudyName && (
               <>
-                <span className="text-muted-foreground/50 text-[11px] font-light">/</span>
-                <span className="text-[12px] font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{activeStudyName}</span>
+                <span className="hidden sm:inline-block text-muted-foreground/50 text-[11px] font-light shrink-0">/</span>
+                <span className="hidden sm:inline-block text-[11px] sm:text-[12px] font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 truncate min-w-0">
+                  {activeStudyName}
+                </span>
               </>
             )}
             {activeCaseName && (
               <>
-                <span className="text-muted-foreground/50 text-[11px] font-light">/</span>
-                <span className="text-[12px] font-medium text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">{activeCaseName}</span>
+                <span className="hidden sm:inline-block text-muted-foreground/50 text-[11px] font-light shrink-0">/</span>
+                <span className="hidden sm:inline-block text-[11px] sm:text-[12px] font-medium text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 truncate min-w-0">
+                  {activeCaseName}
+                </span>
               </>
             )}
           </div>
@@ -207,9 +224,9 @@ export function TopBar({
       </div>
 
       {/* Right: Global State Pills & Actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 shrink-0">
         {/* State Pills */}
-        <div className="flex items-center gap-2 mr-2">
+        <div className="hidden md:flex items-center gap-2 mr-2">
           <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 dark:text-blue-400 text-[11px] font-bold tracking-wider font-mono">
             {systemVoltage_kV} kV
           </div>
@@ -248,7 +265,7 @@ export function TopBar({
         <div className="flex items-center gap-1.5">
           <button
             onClick={onCommandPalette}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-card hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-card hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
           >
             <Command className="w-3 h-3" />
             <span className="text-[10px] font-bold font-mono">K</span>
@@ -261,6 +278,16 @@ export function TopBar({
           >
             {mounted && theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
+
+          {showInspectorToggle && (
+            <button
+              onClick={onMobileInspectorToggle}
+              className="md:hidden p-1.5 rounded-lg border border-border bg-blue-500/10 text-blue-500 transition-colors"
+              title="Toggle Inspector"
+            >
+              <PanelRight className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>

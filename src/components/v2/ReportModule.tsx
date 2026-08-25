@@ -363,11 +363,11 @@ function SCForcesReportTemplate({ inputs, results, onBack }: { inputs: SCInputs,
 
           <h2 className="text-lg font-bold mb-4 uppercase">1. INPUT PARAMETERS</h2>
           
-          {/* Input tables in 2-column layout for landscape */}
-          <div className="grid grid-cols-2 gap-6 print:grid-cols-2">
-            <div>
+          {/* Input tables in linear layout for robust printing */}
+          <div className="space-y-6">
+            <div className="break-inside-avoid">
               <p className="mb-2 text-sm font-semibold">1.1 Basic System Parameters:</p>
-              <table className="pdf-table">
+              <table className="pdf-table" style={{ maxWidth: '70%' }}>
                 <thead>
                   <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
                 </thead>
@@ -388,9 +388,9 @@ function SCForcesReportTemplate({ inputs, results, onBack }: { inputs: SCInputs,
               </table>
             </div>
 
-            <div>
+            <div className="break-inside-avoid">
               <p className="mb-2 text-sm font-semibold">1.2 Conductor Details:</p>
-              <table className="pdf-table">
+              <table className="pdf-table" style={{ maxWidth: '70%' }}>
                 <thead>
                   <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
                 </thead>
@@ -403,9 +403,11 @@ function SCForcesReportTemplate({ inputs, results, onBack }: { inputs: SCInputs,
                   <tr><td>Mass of Sub-conductor (m<sub>c</sub>)</td><td>{inputs.mc}</td><td>kg/m</td></tr>
                 </tbody>
               </table>
+            </div>
 
-              <p className="mb-2 text-sm font-semibold mt-4">1.3 Spacer Details:</p>
-              <table className="pdf-table">
+            <div className="break-inside-avoid">
+              <p className="mb-2 text-sm font-semibold">1.3 Spacer Details:</p>
+              <table className="pdf-table" style={{ maxWidth: '70%' }}>
                 <thead>
                   <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
                 </thead>
@@ -414,9 +416,11 @@ function SCForcesReportTemplate({ inputs, results, onBack }: { inputs: SCInputs,
                   <tr><td>Spacer Mass (m<sub>s</sub>)</td><td>{inputs.ms}</td><td>kg</td></tr>
                 </tbody>
               </table>
+            </div>
 
-              <p className="mb-2 text-sm font-semibold mt-4">1.4 Dropper Details:</p>
-              <table className="pdf-table">
+            <div className="break-inside-avoid">
+              <p className="mb-2 text-sm font-semibold">1.4 Dropper Details:</p>
+              <table className="pdf-table" style={{ maxWidth: '70%' }}>
                 <thead>
                   <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
                 </thead>
