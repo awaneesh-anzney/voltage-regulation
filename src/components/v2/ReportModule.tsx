@@ -294,7 +294,7 @@ function SCForcesReportTemplate({ inputs, results, onBack }: { inputs: SCInputs,
             font-weight: bold;
           }
           .pdf-table tr td:nth-child(2) {
-            text-align: right;
+            text-align: left;
             width: 120px;
           }
           .pdf-table tr td:nth-child(3) {
@@ -641,7 +641,7 @@ function SCForcesReportTemplate({ inputs, results, onBack }: { inputs: SCInputs,
                 <th className="w-8 text-center">#</th>
                 <th>Parameter</th>
                 <th>Formula</th>
-                <th className="text-right">Computed Value</th>
+                <th className="text-left">Computed Value</th>
                 <th className="w-20">IEC Ref.</th>
               </tr>
             </thead>
@@ -651,7 +651,7 @@ function SCForcesReportTemplate({ inputs, results, onBack }: { inputs: SCInputs,
                   <td className="text-center text-gray-700">{row.num}</td>
                   <td className="font-medium">{row.param}</td>
                   <td className="font-mono text-[10px]" dangerouslySetInnerHTML={{ __html: row.html }} />
-                  <td className="text-right font-mono font-bold">{row.val}</td>
+                  <td className="text-left font-mono font-bold">{row.val}</td>
                   <td className="text-[10px] text-gray-700">{row.ref}</td>
                 </tr>
               ))}
