@@ -535,6 +535,7 @@ export default function V2Page() {
           <SagTensionInspector
             inputs={project.sagInputs}
             onUpdateInputs={updateSagInputs}
+            results={sagResults}
           />
         );
       case "loadflow":

@@ -1,18 +1,19 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Cable, Settings2, BarChart3, TrendingUp, ChevronDown, ChevronRight,
-  Link2, Zap, AlertTriangle, CheckCircle2, XCircle, ArrowRight, Thermometer
+  Link2, Zap, AlertTriangle, CheckCircle2, XCircle, ArrowRight, Thermometer,
+  FileText
 } from "lucide-react";
 import { computeSagTension, getDefaultSagTensionInputs } from "@/lib/sagTensionEngine";
 import type { SagTensionInputs, SagTensionResults, SagTableRow } from "@/lib/sagTensionEngine";
 import { CONDUCTOR_LIBRARY, getConductorTypes, getConductorsByType } from "@/lib/conductorLibrary";
+import { getClearanceSpec } from "@/lib/ceaClearances";
 
-// ─── Shared Input Field ───
-function InputField({ label, value, unit, onChange, disabled }: {
+function InputField({ label, value, unit, onChange, disabled, step }: {
   label: string; value: number | string; unit?: string;
-  onChange: (v: number | string) => void; disabled?: boolean;
+  onChange: (v: number | string) => void; disabled?: boolean; step?: number;
 }) {
   const isNumber = typeof value === 'number';
   const [localValue, setLocalValue] = useState<string>(String(value));
@@ -28,6 +29,7 @@ function InputField({ label, value, unit, onChange, disabled }: {
       <div className="flex items-center gap-1.5">
         <input
           type={isNumber ? 'number' : 'text'}
+          step={step}
           value={isFocused ? localValue : value}
           disabled={disabled}
           onFocus={() => {
@@ -55,7 +57,7 @@ function InputField({ label, value, unit, onChange, disabled }: {
               setLocalValue(String(parsed));
             }
           }}
-          className="flex-1 bg-card border border-border rounded-lg px-3 py-2 text-[13px] text-foreground font-mono
+          className="w-full flex-1 min-w-0 bg-card border border-border rounded-lg px-3 py-2 text-[13px] text-foreground font-mono
             focus:outline-none focus:border-teal-500/30 focus:ring-1 focus:ring-teal-500/20
             disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         />
@@ -82,7 +84,7 @@ function Section({ title, accent, defaultOpen, children }: {
   return (
     <div className="border-b border-white/[0.04] last:border-0">
       <button onClick={() => setOpen(!open)}
-        className={`w-full flex items-center gap-2 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:hover:bg-accent/30 ${accentColors[accent] || accentColors.slate}`}>
+        className={`w-full flex items-center gap-2 px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors cursor-pointer hover:bg-accent/30 ${accentColors[accent] || accentColors.slate}`}>
         {open ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
         <span>{title}</span>
       </button>
@@ -92,27 +94,59 @@ function Section({ title, accent, defaultOpen, children }: {
 }
 
 // ─── Right Inspector ───
-export function SagTensionInspector({ inputs, onUpdateInputs }: {
+export function SagTensionInspector({ inputs, onUpdateInputs, results }: {
   inputs: SagTensionInputs;
   onUpdateInputs: (partial: Partial<SagTensionInputs>) => void;
+  results: SagTensionResults;
 }) {
-  const conductorList = Object.values(CONDUCTOR_LIBRARY);
   const conductorTypes = getConductorTypes();
-  const currentType = inputs.conductorName.split(' ')[0] || 'ACSR';
+
+  const currentType = useMemo(() => {
+    const firstPart = inputs.conductorName.split(' ')[0];
+    if (conductorTypes.includes(firstPart)) {
+      return firstPart;
+    }
+    return 'ACSR';
+  }, [inputs.conductorName, conductorTypes]);
+
+  const currentName = useMemo(() => {
+    const parts = inputs.conductorName.split(' ');
+    if (conductorTypes.includes(parts[0])) {
+      return parts.slice(1).join(' ') || 'Custom';
+    }
+    return inputs.conductorName || 'Custom';
+  }, [inputs.conductorName, conductorTypes]);
+
+  const isCustom = useMemo(() => {
+    return !CONDUCTOR_LIBRARY.some(c => `${c.type} ${c.name}` === inputs.conductorName);
+  }, [inputs.conductorName]);
+
   const conductorsForType = getConductorsByType(currentType);
-  const currentName = inputs.conductorName.split(' ').slice(1).join(' ') || inputs.conductorName;
 
   return (
     <div className="h-full flex flex-col">
-      <div className="px-4 py-3 border-b border-border shrink-0">
-        <h3 className="text-[13px] font-bold text-foreground flex items-center gap-1.5">
-          <Settings2 className="w-4 h-4 text-teal-400" />
-          Sag-Tension Parameters
-        </h3>
-        <p className="text-[10px] text-muted-foreground/80 mt-0.5">IS 802 / IEC 60826</p>
+      <div className="px-4 py-3 border-b border-border shrink-0 space-y-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-[13px] font-bold text-foreground flex items-center gap-1.5">
+            <Settings2 className="w-4 h-4 text-teal-400" />
+            Sag-Tension Parameters
+          </h3>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Standard</span>
+          <select
+            value={inputs.standard || 'IS802'}
+            onChange={(e) => onUpdateInputs({ standard: e.target.value as any })}
+            className="bg-card border border-border rounded px-2 py-1 text-[11px] text-foreground focus:outline-none focus:border-teal-500/30 cursor-pointer"
+          >
+            <option value="IS802">IS 802:2015 (India)</option>
+            <option value="IEC60826">IEC 60826 (International)</option>
+          </select>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto no-scrollbar">
+        {/* Conductor specifications */}
         <Section title="Conductor" accent="teal" defaultOpen>
           <div className="grid grid-cols-2 gap-2 mb-2">
             <div className="space-y-1">
@@ -141,7 +175,7 @@ export function SagTensionInspector({ inputs, onUpdateInputs }: {
             <div className="space-y-1">
               <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Name</label>
               <select
-                value={currentName}
+                value={isCustom ? "Custom" : currentName}
                 onChange={(e) => {
                   const name = e.target.value;
                   const c = CONDUCTOR_LIBRARY.find(x => x.name === name && x.type === currentType);
@@ -155,7 +189,7 @@ export function SagTensionInspector({ inputs, onUpdateInputs }: {
                       finalModulus_N_mm2: c.finalModulus || 0,
                     });
                   } else {
-                    onUpdateInputs({ conductorName: name }); // For custom names
+                    onUpdateInputs({ conductorName: `${currentType} Custom` });
                   }
                 }}
                 className="w-full bg-card border border-border rounded-lg px-3 py-2 text-[13px] text-foreground focus:outline-none focus:border-teal-500/30 cursor-pointer"
@@ -165,18 +199,40 @@ export function SagTensionInspector({ inputs, onUpdateInputs }: {
               </select>
             </div>
           </div>
-          {currentName === "Custom" && (
-            <InputField label="Custom Name" value={inputs.conductorName} onChange={(v) => onUpdateInputs({ conductorName: v as string })} />
+          {isCustom && (
+            <InputField label="Custom Name" value={currentName} onChange={(v) => onUpdateInputs({ conductorName: `${currentType} ${v}` })} />
           )}
-          <InputField label="Area" value={inputs.area_mm2} unit="mm²" onChange={(v) => onUpdateInputs({ area_mm2: v as number })} disabled={currentName !== 'Custom'} />
-          <InputField label="Diameter" value={inputs.diameter_mm} unit="mm" onChange={(v) => onUpdateInputs({ diameter_mm: v as number })} disabled={currentName !== 'Custom'} />
-          <InputField label="Weight" value={inputs.weight_kg_m} unit="kg/m" onChange={(v) => onUpdateInputs({ weight_kg_m: v as number })} disabled={currentName !== 'Custom'} />
-          <InputField label="UTS" value={inputs.uts_kN} unit="kN" onChange={(v) => onUpdateInputs({ uts_kN: v as number })} disabled={currentName !== 'Custom'} />
-          <InputField label="Elastic Modulus E" value={inputs.elasticModulus_N_mm2} unit="N/mm²" onChange={(v) => onUpdateInputs({ elasticModulus_N_mm2: v as number })} disabled={currentName !== 'Custom'} />
-          <InputField label="Thermal Exp. α" value={inputs.thermalExpCoeff} unit="/°C" onChange={(v) => onUpdateInputs({ thermalExpCoeff: v as number })} disabled={currentName !== 'Custom'} />
+          <InputField label="Area" value={inputs.area_mm2} unit="mm²" onChange={(v) => onUpdateInputs({ area_mm2: v as number })} disabled={!isCustom} />
+          <InputField label="Diameter" value={inputs.diameter_mm} unit="mm" onChange={(v) => onUpdateInputs({ diameter_mm: v as number })} disabled={!isCustom} />
+          <InputField label="Weight" value={inputs.weight_kg_m} unit="kg/m" onChange={(v) => onUpdateInputs({ weight_kg_m: v as number })} disabled={!isCustom} />
+          <InputField label="UTS" value={inputs.uts_kN} unit="kN" onChange={(v) => onUpdateInputs({ uts_kN: v as number })} disabled={!isCustom} />
+          <InputField label="Elastic Modulus E" value={inputs.elasticModulus_N_mm2} unit="N/mm²" onChange={(v) => onUpdateInputs({ elasticModulus_N_mm2: v as number })} disabled={!isCustom} />
+          <InputField label="Thermal Exp. α" value={inputs.thermalExpCoeff} unit="/°C" onChange={(v) => onUpdateInputs({ thermalExpCoeff: v as number })} disabled={!isCustom} />
         </Section>
 
+        {/* Span geometry */}
         <Section title="Span Geometry" accent="amber">
+          <div className="space-y-1">
+            <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">System Voltage</label>
+            <select
+              value={inputs.systemVoltageKv || 400}
+              onChange={(e) => {
+                const kv = parseInt(e.target.value);
+                const spec = getClearanceSpec(kv).spec;
+                onUpdateInputs({
+                  systemVoltageKv: kv,
+                  minGroundClearance_m: spec.groundClearanceM
+                });
+              }}
+              className="w-full bg-card border border-border rounded-lg px-3 py-2 text-[13px] text-foreground focus:outline-none focus:border-amber-500/30 cursor-pointer"
+            >
+              <option value={765}>765 kV</option>
+              <option value={400}>400 kV</option>
+              <option value={220}>220 kV</option>
+              <option value={132}>132 kV</option>
+              <option value={33}>33 kV</option>
+            </select>
+          </div>
           <InputField label="Span Length" value={inputs.span_m} unit="m" onChange={(v) => onUpdateInputs({ span_m: v as number })} />
           <InputField label="Ruling Span (0=same)" value={inputs.rulingSpan_m} unit="m" onChange={(v) => onUpdateInputs({ rulingSpan_m: v as number })} />
           <InputField label="Level Difference" value={inputs.levelDiff_m} unit="m" onChange={(v) => onUpdateInputs({ levelDiff_m: v as number })} />
@@ -185,31 +241,125 @@ export function SagTensionInspector({ inputs, onUpdateInputs }: {
           <InputField label="Min Ground Clearance" value={inputs.minGroundClearance_m} unit="m" onChange={(v) => onUpdateInputs({ minGroundClearance_m: v as number })} />
         </Section>
 
-        <Section title="Loading (IS 802)" accent="blue">
-          <div className="space-y-1">
-            <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Wind Zone</label>
-            <div className="grid grid-cols-4 gap-1">
-              {[
-                { label: "I", pa: 240 }, { label: "II", pa: 390 },
-                { label: "III", pa: 440 }, { label: "IV", pa: 590 },
-              ].map((z) => (
-                <button key={z.label} onClick={() => onUpdateInputs({ windPressure_Pa: z.pa })}
-                  className={`py-1.5 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
-                    inputs.windPressure_Pa === z.pa
-                      ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                      : "bg-accent/50 text-muted-foreground border border-border hover:text-foreground"
-                  }`}>
-                  Zone {z.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <InputField label="Wind Pressure" value={inputs.windPressure_Pa} unit="Pa" onChange={(v) => onUpdateInputs({ windPressure_Pa: v as number })} />
-          <InputField label="Drag Coefficient" value={inputs.dragCoeff} unit="" onChange={(v) => onUpdateInputs({ dragCoeff: v as number })} />
+        {/* Dynamic Loading Section */}
+        <Section title="Loading & Wind" accent="blue">
+          {(inputs.standard || 'IS802') === 'IS802' ? (
+            <>
+              <div className="space-y-1">
+                <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Wind Zone (IS 802)</label>
+                <div className="grid grid-cols-3 gap-1">
+                  {[1, 2, 3, 4, 5, 6].map((z) => {
+                    const zoneRoman = z === 1 ? "I" : z === 2 ? "II" : z === 3 ? "III" : z === 4 ? "IV" : z === 5 ? "V" : "VI";
+                    return (
+                      <button
+                        key={z}
+                        onClick={() => onUpdateInputs({ windZone: z })}
+                        className={`py-1.5 rounded-md text-[10px] font-semibold transition-all cursor-pointer ${
+                          (inputs.windZone || 4) === z
+                            ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                            : "bg-accent/50 text-muted-foreground border border-border hover:text-foreground"
+                        }`}
+                      >
+                        Zone {zoneRoman}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Terrain Cat.</label>
+                  <select
+                    value={inputs.terrainCategory || 2}
+                    onChange={(e) => onUpdateInputs({ terrainCategory: parseInt(e.target.value) as any })}
+                    className="w-full bg-card border border-border rounded-lg px-2 py-1.5 text-[12px] text-foreground focus:outline-none focus:border-blue-500/30 cursor-pointer"
+                  >
+                    <option value={1}>Category 1 (Open)</option>
+                    <option value={2}>Category 2 (Normal)</option>
+                    <option value={3}>Category 3 (Dense)</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Reliability</label>
+                  <select
+                    value={inputs.reliabilityLevel || 1}
+                    onChange={(e) => onUpdateInputs({ reliabilityLevel: parseInt(e.target.value) as any })}
+                    className="w-full bg-card border border-border rounded-lg px-2 py-1.5 text-[12px] text-foreground focus:outline-none focus:border-blue-500/30 cursor-pointer"
+                  >
+                    <option value={1}>Level 1 (≤400kV)</option>
+                    <option value={2}>Level 2 (&gt;400kV)</option>
+                    <option value={3}>Level 3 (Special)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <InputField
+                  label="Cond. Gust Factor Gc"
+                  value={inputs.conductorGustFactor !== undefined && inputs.conductorGustFactor !== 0 ? inputs.conductorGustFactor : parseFloat((results.trace?.conductorGustFactor ?? 1.65).toFixed(2))}
+                  unit=""
+                  onChange={(v) => onUpdateInputs({ conductorGustFactor: v as number })}
+                  step={0.05}
+                />
+                <InputField
+                  label="Ins. Gust Factor Gi"
+                  value={inputs.insulatorGustFactor !== undefined && inputs.insulatorGustFactor !== 0 ? inputs.insulatorGustFactor : parseFloat((results.trace?.insulatorGustFactor ?? 2.10).toFixed(2))}
+                  unit=""
+                  onChange={(v) => onUpdateInputs({ insulatorGustFactor: v as number })}
+                  step={0.05}
+                />
+              </div>
+            </>
+          ) : (
+            <InputField
+              label="Wind Pressure"
+              value={inputs.windPressure_Pa}
+              unit="Pa"
+              onChange={(v) => onUpdateInputs({ windPressure_Pa: v as number })}
+            />
+          )}
+
           <InputField label="Ice Thickness" value={inputs.iceFactor} unit="mm" onChange={(v) => onUpdateInputs({ iceFactor: v as number })} />
         </Section>
 
-        <Section title="Stringing" accent="slate" defaultOpen={false}>
+        {/* Drag coefficients and insulator parameters */}
+        <Section title="Drag & Insulator Details" accent="slate" defaultOpen={false}>
+          <div className="grid grid-cols-2 gap-2">
+            <InputField
+              label="Drag Coeff (Cond)"
+              value={inputs.dragCoeff_conductor ?? 1.0}
+              unit=""
+              onChange={(v) => onUpdateInputs({ dragCoeff_conductor: v as number })}
+              step={0.05}
+            />
+            <InputField
+              label="Drag Coeff (Ins)"
+              value={inputs.dragCoeff_insulator ?? 1.2}
+              unit=""
+              onChange={(v) => onUpdateInputs({ dragCoeff_insulator: v as number })}
+              step={0.05}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <InputField
+              label="Insulator Weight"
+              value={inputs.insulatorWeight_kg ?? 100}
+              unit="kg"
+              onChange={(v) => onUpdateInputs({ insulatorWeight_kg: v as number })}
+            />
+            <InputField
+              label="Insulator Area"
+              value={inputs.insulatorArea_m2 ?? 0.5}
+              unit="m²"
+              onChange={(v) => onUpdateInputs({ insulatorArea_m2: v as number })}
+              step={0.05}
+            />
+          </div>
+        </Section>
+
+        {/* Stringing limits */}
+        <Section title="Stringing State" accent="slate" defaultOpen={false}>
           <InputField label="Reference Temp" value={inputs.refTemp_C} unit="°C" onChange={(v) => onUpdateInputs({ refTemp_C: v as number })} />
           <InputField label="Initial Tension" value={inputs.initialTension_pctUTS} unit="% UTS" onChange={(v) => onUpdateInputs({ initialTension_pctUTS: v as number })} />
           <InputField label="Safety Factor" value={inputs.safetyFactor} unit="" onChange={(v) => onUpdateInputs({ safetyFactor: v as number })} />
@@ -248,12 +398,87 @@ function KPI({ label, value, unit, status, sublabel }: {
   );
 }
 
+// ─── Equation Trace Component ───
+export function SagTensionEquationTrace({ results }: { results: SagTensionResults }) {
+  const { trace } = results;
+  if (!trace) return null;
+
+  const rows = [
+    { num: 1, param: "Design Standard Selected", html: "Standard", val: trace.standard === "IS802" ? "IS 802:2015 (India)" : "IEC 60826", ref: "-" },
+  ];
+
+  if (trace.standard === "IS802") {
+    rows.push(
+      { num: 2, param: "Basic Wind Speed", html: "V<sub>b</sub>", val: `${trace.vBasic} m/s`, ref: "IS 802 Table 3" },
+      { num: 3, param: "Reliability Factor (Risk Coefficient)", html: "K₁", val: trace.k1.toFixed(2), ref: "IS 802 Table 2" },
+      { num: 4, param: "Terrain Category Factor", html: "K₂", val: trace.k2.toFixed(2), ref: "IS 802 Table 3" },
+      { num: 5, param: "Design Wind Speed", html: "V<sub>d</sub> = V<sub>b</sub> × K₁ × K₂", val: `${trace.vDesign.toFixed(2)} m/s`, ref: "Clause 8.3" },
+      { num: 6, param: "Design Wind Pressure", html: "P<sub>d</sub> = 0.6 × V<sub>d</sub>²", val: `${trace.pDesign.toFixed(1)} N/m²`, ref: "Table 4 / Clause 8.4" },
+      { num: 7, param: "Conductor Gust Response Factor", html: "G<sub>c</sub>", val: trace.conductorGustFactor.toFixed(2), ref: "Table 7" },
+      { num: 8, param: "Insulator Gust Factor", html: "G<sub>i</sub>", val: trace.insulatorGustFactor.toFixed(2), ref: "Table 6" }
+    );
+  } else {
+    rows.push(
+      { num: 2, param: "Design Wind Pressure (Direct)", html: "P<sub>d</sub>", val: `${trace.pDesign.toFixed(1)} N/m²`, ref: "Manual Input" }
+    );
+  }
+
+  const offset = trace.standard === "IS802" ? 7 : 1;
+
+  rows.push(
+    { num: 2 + offset, param: "Conductor Drag Coefficient", html: "C<sub>dc</sub>", val: trace.dragCoeffConductor.toFixed(2), ref: "Clause 9.3.1" },
+    { num: 3 + offset, param: "Insulator Drag Coefficient", html: "C<sub>di</sub>", val: trace.dragCoeffInsulator.toFixed(2), ref: "Clause 9.3.1" },
+    { num: 4 + offset, param: "Effective Conductor Wind Pressure", html: "P<sub>cond</sub> = P<sub>d</sub> × G<sub>c</sub>", val: `${trace.effectiveWindPressurePa.toFixed(1)} N/m²`, ref: "-" },
+    { num: 5 + offset, param: "Conductor Wind Load per Meter", html: "w<sub>wind\_cond</sub> = C<sub>dc</sub> × P<sub>cond</sub> × d<sub>cond</sub>", val: `${trace.wWindCond.toFixed(3)} N/m`, ref: "Clause 9.3" },
+    { num: 6 + offset, param: "Insulator Wind Force (per string)", html: "F<sub>wind\_ins</sub> = C<sub>di</sub> × (P<sub>d</sub> × G<sub>i</sub>) × A<sub>ins</sub>", val: `${trace.fWindIns.toFixed(1)} N`, ref: "Clause 9.3" },
+    { num: 7 + offset, param: "Insulator Swing Angle", html: "θ<sub>swing\_ins</sub> = atan[ (F<sub>wind\_ins</sub> + 0.5·w<sub>wind</sub>·L) / ... ]", val: `${trace.insulatorSwingAngleDeg.toFixed(2)}°`, ref: "Vector physics" },
+    { num: 8 + offset, param: "Insulator Vertical Drop under swing", html: "y<sub>drop</sub> = L<sub>ins</sub> × cos(θ<sub>swing\_ins</sub>)", val: `${trace.insulatorVerticalDropM.toFixed(3)} m`, ref: "Geometry" }
+  );
+
+  return (
+    <div className="bg-card border border-border rounded-xl overflow-hidden mt-4 animate-in fade-in duration-300">
+      <div className="px-5 py-4 border-b border-border">
+        <h3 className="text-[13px] font-semibold text-foreground uppercase tracking-wider">IS 802 / IEC 60826 — Mechanical Wind Force & Swing Trace</h3>
+        <p className="text-[11px] text-muted-foreground mt-1">Detailed step-by-step intermediate variables and design coefficients.</p>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-[12px] text-left">
+          <thead className="bg-accent/50 text-muted-foreground">
+            <tr>
+              <th className="px-5 py-3 font-medium w-12">#</th>
+              <th className="px-5 py-3 font-medium">Parameter</th>
+              <th className="px-5 py-3 font-medium">Formula</th>
+              <th className="px-5 py-3 font-medium">Computed Value</th>
+              <th className="px-5 py-3 font-medium">Standard Reference</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/[0.04]">
+            {rows.map((row) => (
+              <tr key={row.num} className="hover:bg-white/[0.02]">
+                <td className="px-5 py-2.5 text-slate-500 font-mono">{row.num}</td>
+                <td className="px-5 py-2.5 text-muted-foreground">{row.param}</td>
+                <td className="px-5 py-2.5">
+                  <div className="bg-background px-2 py-1 rounded border border-border inline-block font-mono text-[11px] text-blue-300" dangerouslySetInnerHTML={{ __html: row.html }} />
+                </td>
+                <td className="px-5 py-2.5 text-foreground font-mono">{row.val}</td>
+                <td className="px-5 py-2.5 text-muted-foreground">{row.ref}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ─── Center Canvas ───
+type CanvasTab = "results" | "profile" | "sweep" | "trace";
+
 export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
   inputs: SagTensionInputs; results: SagTensionResults;
   onFeedToSCForces?: (data: { fst_kg: number; span_m: number; conductorName: string }) => void;
 }) {
-  const [tab, setTab] = useState<"results" | "profile" | "sweep">("results");
+  const [tab, setTab] = useState<CanvasTab>("results");
 
   // Catenary points for SVG
   const catenaryPoints = useMemo(() => {
@@ -298,13 +523,13 @@ export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
       <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500/[0.06] border border-teal-500/15 text-[12px] text-foreground/90">
         <Cable className="w-4 h-4 text-teal-400 shrink-0" />
         <span className="font-mono">
-          {inputs.conductorName} · {inputs.span_m} m span · Wind: {inputs.windPressure_Pa} Pa · Ref: {inputs.refTemp_C}°C @ {inputs.initialTension_pctUTS}% UTS
+          {inputs.conductorName} · {inputs.span_m}m span · {inputs.systemVoltageKv || 400}kV · Standard: {inputs.standard || 'IS802'} · Wind: {results.trace?.pDesign ?? inputs.windPressure_Pa} Pa · Ref: {inputs.refTemp_C}°C @ {inputs.initialTension_pctUTS}% UTS
         </span>
       </div>
 
       {/* Warnings */}
       {results.warnings.length > 0 && (
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 animate-in slide-in-from-top-1">
           {results.warnings.map((w, i) => (
             <div key={i} className="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-500/8 border border-amber-500/20 text-amber-300 text-[11px]">
               <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" /><span>{w}</span>
@@ -338,6 +563,7 @@ export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
           { id: "results" as const, label: "Sag-Tension Table", icon: BarChart3 },
           { id: "profile" as const, label: "Catenary Profile", icon: Cable },
           { id: "sweep" as const, label: "Temperature Sweep", icon: Thermometer },
+          { id: "trace" as const, label: "Equation Trace", icon: FileText },
         ].map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-medium transition-all cursor-pointer whitespace-nowrap ${
@@ -350,13 +576,13 @@ export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
 
       {/* Table */}
       {tab === "results" && (
-        <div className="bg-card rounded-2xl border border-border overflow-hidden">
+        <div className="bg-card rounded-2xl border border-border overflow-hidden animate-in fade-in duration-300">
           <div className="overflow-x-auto">
             <table className="w-full text-[12px]">
               <thead>
-                <tr className="bg-card">
-                  {["Temp (°C)", "Condition", "Tension (kg)", "% UTS", "Sag (m)", "Sag Para (m)", "Clearance (m)", "Status"].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{h}</th>
+                <tr className="bg-card text-muted-foreground font-bold border-b border-border">
+                  {["Temp (°C)", "Condition", "Tension (kg)", "% UTS", "Vertical Sag (m)", "Clearance (m)", "Blowout (m)", "Swing Angle", "Status"].map(h => (
+                    <th key={h} className="px-4 py-3 text-left text-[10px] uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -368,8 +594,9 @@ export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
                     <td className="px-4 py-2.5 font-mono text-foreground">{row.tension_kg.toFixed(1)}</td>
                     <td className="px-4 py-2.5 font-mono text-muted-foreground">{row.tension_pctUTS.toFixed(1)}%</td>
                     <td className="px-4 py-2.5 font-mono text-amber-300">{row.sag_m.toFixed(3)}</td>
-                    <td className="px-4 py-2.5 font-mono text-muted-foreground">{row.sag_parabolic_m.toFixed(3)}</td>
                     <td className="px-4 py-2.5 font-mono text-foreground">{row.clearance_m.toFixed(2)}</td>
+                    <td className="px-4 py-2.5 font-mono text-cyan-400">{row.blowout_m.toFixed(2)}</td>
+                    <td className="px-4 py-2.5 font-mono text-slate-300">{row.swingAngle_deg.toFixed(1)}°</td>
                     <td className="px-4 py-2.5">
                       {row.clearance_ok
                         ? <span className="text-emerald-400 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" />OK</span>
@@ -386,7 +613,7 @@ export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
 
       {/* Catenary Profile SVG */}
       {tab === "profile" && (
-        <div className="bg-card rounded-2xl border border-border p-6">
+        <div className="bg-card rounded-2xl border border-border p-6 animate-in fade-in duration-300">
           <svg viewBox={`-20 -20 ${inputs.span_m + 40} ${(results.maxSag_m * 1.8) + 60}`} className="w-full" style={{ minHeight: 300 }}>
             <defs>
               <linearGradient id="sagGrad" x1="0" y1="0" x2="0" y2="1">
@@ -437,7 +664,7 @@ export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
         const W = 700, H = 300, PL = 60, PR = 60, PT = 20, PB = 40;
 
         return (
-          <div className="bg-card rounded-2xl border border-border p-6">
+          <div className="bg-card rounded-2xl border border-border p-6 animate-in fade-in duration-300">
             <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minHeight: 280 }}>
               {/* Axes */}
               <line x1={PL} y1={PT} x2={PL} y2={H - PB} stroke="#334155" strokeWidth="1" />
@@ -482,6 +709,11 @@ export function SagTensionCanvas({ inputs, results, onFeedToSCForces }: {
           </div>
         );
       })()}
+
+      {/* Dynamic Equation Trace Tab */}
+      {tab === "trace" && (
+        <SagTensionEquationTrace results={results} />
+      )}
     </div>
   );
 }
