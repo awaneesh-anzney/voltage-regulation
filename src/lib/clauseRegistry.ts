@@ -1,0 +1,15 @@
+export const CLAUSE_REGISTRY = {
+  k:        "IEC60865_PEAKFACTOR_STYLE",
+  Fprime:   "IEC60865_AMPERELAW_STYLE",
+  r:        "IEC60865_LOADPARAM_STYLE",
+  deltam:   "IEC60865_SWINGANGLE_STYLE",
+  Ftd:      "IEC60865_TENSILE_SWING_STYLE",
+  Ffd:      "IEC60865_DROPFORCE_UNCONFIRMED",
+  v2:       "IEC60865_ANNEXA7_STYLE",
+  v3:       "IEC60865_FIG10_STYLE",
+  eta:      "IEC60865_FIG12_STYLE",
+  Fpi:      "IEC60865_PINCH_STYLE",
+  clearance:"IEC60865_CLEARANCE_STYLE",
+} as const;
+
+export type ClauseId = (typeof CLAUSE_REGISTRY)[keyof typeof CLAUSE_REGISTRY];
