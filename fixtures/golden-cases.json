@@ -1,0 +1,87 @@
+[
+  {
+    "name": "default_iec_pdf_reference_case",
+    "validationStatus": "EXTERNAL_PDF_MATCH",
+    "description": "Original PDF test case — Ftd/deltam_deg/v2/v3/eta independently matched to stated tolerances per engine code comments.",
+    "inputOverrides": {},
+    "expected": {
+      "r": 1.1194910237829163,
+      "deltam_deg": 106.86272903607947,
+      "v2": 1.8083712868688433,
+      "v3": 0.21873897537065545,
+      "eta": 0.4414508867144603,
+      "Ftd": 40700.32634959179,
+      "amin": 2.354344636852225,
+      "clCheck": true
+    }
+  },
+  {
+    "name": "single_conductor_no_bundle",
+    "validationStatus": "REGRESSION_ONLY",
+    "description": "nc=1 — pinch-related params should be N/A, not zero.",
+    "inputOverrides": {
+      "nc": 1,
+      "as": 0
+    },
+    "expected": {
+      "v2": null,
+      "v3": null,
+      "eta": null,
+      "Fpi": 0
+    }
+  },
+  {
+    "name": "ai_candidate_ffd_method",
+    "validationStatus": "REGRESSION_ONLY",
+    "description": "Ffd method switched to AI_Candidate — regression baseline only, formula itself unverified.",
+    "inputOverrides": {
+      "ffdMethod": "AI_Candidate"
+    },
+    "expected": {
+      "ffdMethodSelected": "AI_Candidate"
+    }
+  },
+  {
+    "name": "ffd_disabled",
+    "validationStatus": "REGRESSION_ONLY",
+    "description": "Drop force explicitly disabled — Fmax should never include Ffd contribution.",
+    "inputOverrides": {
+      "ffdMethod": "DISABLED"
+    },
+    "expected": {
+      "Ffd": 0
+    }
+  },
+  {
+    "name": "clash_effect_geometric_shortcut",
+    "validationStatus": "REGRESSION_ONLY",
+    "description": "Tight spacer span forcing clasheff=true — simplified 1.1x multiplier path.",
+    "inputOverrides": {
+      "as": 0.3,
+      "ls": 20
+    },
+    "expected": {
+      "clasheff": false
+    }
+  },
+  {
+    "name": "high_xr_low_current",
+    "validationStatus": "REGRESSION_ONLY",
+    "description": "Edge of typical operating range — low fault current, high X/R.",
+    "inputOverrides": {
+      "ik3": 20000,
+      "xr": 30
+    },
+    "expected": {}
+  },
+  {
+    "name": "large_span_high_current",
+    "validationStatus": "REGRESSION_ONLY",
+    "description": "Large span, near-maximum fault current — stress test for solver bracket widening.",
+    "inputOverrides": {
+      "lspan": 100,
+      "ik3": 95000
+    },
+    "expected": {}
+  }
+]

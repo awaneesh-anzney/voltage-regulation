@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import type { TrustBadge, TrustLevel } from "@/lib/trustSystem";
-import { AlertTriangle, RefreshCw, CheckCircle2, HelpCircle, XCircle } from "lucide-react";
+import { AlertTriangle, RefreshCw, CheckCircle2, HelpCircle, XCircle, BookOpen, ExternalLink, ShieldAlert, MinusCircle, Info } from "lucide-react";
+import type { ClauseId } from "@/lib/clauseRegistry";
+import { formatClauseDisplay } from "@/lib/clauseRegistry";
 
 // ─── Trust Badge ───
 const BADGE_CONFIG: Record<TrustLevel, { bg: string; text: string; border: string; icon: React.ElementType; fullLabel: string }> = {
@@ -87,7 +89,7 @@ export function StaleWarning({ message, onRecalculate, onDismiss }: {
 }
 
 // ─── IEC Reference Link (contextual) ───
-export function IECRef({ clause, description }: { clause: string; description: string }) {
+export function IECRef({ clause, description }: { clause: ClauseId | string; description: string }) {
   const [showTip, setShowTip] = useState(false);
 
   return (
@@ -97,7 +99,7 @@ export function IECRef({ clause, description }: { clause: string; description: s
         onMouseEnter={() => setShowTip(true)}
         onMouseLeave={() => setShowTip(false)}
       >
-        📎 {clause}
+        📎 {formatClauseDisplay(clause)}
       </span>
       {showTip && (
         <span className="absolute bottom-full left-0 mb-1 px-2.5 py-1.5 bg-popover border border-border rounded-lg shadow-xl text-[10px] text-foreground/90 whitespace-nowrap z-50 pointer-events-none">

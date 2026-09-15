@@ -16,9 +16,10 @@ export interface SagTensionInputs {
   diameter_mm: number;        // Overall diameter (mm)
   weight_kg_m: number;        // Weight per unit length (kg/m)
   uts_kN: number;             // Ultimate tensile strength (kN)
-  elasticModulus_N_mm2: number;  // Young's modulus E (N/mm²)
+  elasticModulus_N_mm2: number;  // Young's modulus E (N/mm²) — used for Initial/As-strung track
   thermalExpCoeff: number;    // Coefficient of linear thermal expansion (/°C)
-  finalModulus_N_mm2: number; // Final modulus after creep (N/mm²), 0 = use elastic
+  finalModulus_N_mm2: number; // Final modulus after creep (N/mm²), 0 = use elastic — used for Final track
+  creepStrain_pct?: number;   // Creep strain (%), converted to equivalent thermal offset for Final track
 
   // Span geometry
   span_m: number;             // Span length (m)
@@ -55,45 +56,104 @@ export interface SagTensionInputs {
   insulatorWeight_kg?: number;    // W_ins
   insulatorArea_m2?: number;      // A_ins
   systemVoltageKv?: number;
+
+  // Phase 4: Broken Wire
+  towerType?: 'suspension' | 'tension' | 'deadend';
+  brokenWireLoadFactor_pct?: number; // 0 or undefined = use user input
+}
+
+// Sub-interface for one track's intermediate values in the change-of-state equation
+export interface TrackTrace {
+  T1_N: number;
+  w1_N_m: number;
+  w2_N_m: number;
+  L_m: number;
+  K_AE_N: number;           // A × E
+  w1L2K_term_N: number;     // w1²L²K/(24×T1²)
+  w2L2K_term_N: number;     // w2²L²K/(24×T2²)
+  deltaT_C: number;          // Effective ΔT (includes creep offset for Final track)
+  alphaExpansion_term_N: number; // K × α × ΔT
+  C1_value_N: number;
+  T2_result_N: number;
+  sag_catenary_m: number;
+  sag_parabolic_m: number;
+  insulatorDrop_m: number;
+  verticalSag_m: number;
+  clearance_m: number;
+  clearance_ok: boolean;
+}
+
+export interface PerTempTrace {
+  temperature_C: number;
+  condition: string;
+  initial: TrackTrace;
+  final: TrackTrace;
 }
 
 export interface SagTableRow {
   temperature_C: number;
   condition: string;           // "No Wind" | "Full Wind" | "Ice Only" | "Ice & Wind"
+  // Legacy fields — consistently mapped to FINAL state for backward compatibility
   tension_kg: number;
   tension_pctUTS: number;
   sag_m: number;
-  sag_parabolic_m: number;    // Parabolic approximation for comparison
+  sag_parabolic_m: number;
   clearance_m: number;
   clearance_ok: boolean;
   blowout_m: number;          // Horizontal wind deflection
   swingAngle_deg: number;     // Swing angle due to wind
+  // Phase 3: Explicit Initial/Final fields
+  initial_tension_kg: number;
+  initial_sag_m: number;
+  initial_clearance_m: number;
+  initial_clearance_ok: boolean;
+  final_tension_kg: number;
+  final_sag_m: number;
+  final_clearance_m: number;
+  final_clearance_ok: boolean;
+}
+
+export interface BrokenWireResult {
+  towerType: 'suspension' | 'tension' | 'deadend';
+  operatingTension_kg: number;      // reference tension jise "unbalanced" treat karenge
+  loadFactorApplied_pct: number;    // kaunsa % use hua
+  longitudinalLoad_kg: number;      // = operatingTension_kg × loadFactorApplied_pct/100
+  insulatorSwingAngle_deg?: number; // sirf suspension ke liye, illustrative
+  insulatorSwingWarning?: string;   // agar swing angle unrealistic ho (>60°), warning
 }
 
 export interface SagTensionResults {
-  // Key output for SC Forces
-  staticTension_kg: number;    // Everyday tension at ref temp — maps to SC Forces fst_kg
+  // Key output for SC Forces — INITIAL state (as-strung reference for tower structural loading)
+  staticTension_kg: number;
   staticTension_kN: number;
 
   // Full table
   sagTable: SagTableRow[];
 
-  // Summary metrics
+  // Summary metrics (from Final state — design/steady-state condition)
   maxSag_m: number;
   maxSag_temp_C: number;
   minClearance_m: number;
   minClearance_temp_C: number;
-  maxTension_kg: number;       // Usually at coldest temperature
+  maxTension_kg: number;       // Final-track max tension
   maxTension_temp_C: number;
 
+  // Phase 3: Initial-track UTS check (worst-case tension = Initial + Coldest + Full Wind)
+  initial_maxTension_kg: number;
+  initial_maxTension_temp_C: number;
+  initial_uts_check: boolean;
+
   // Wind loading
-  windForce_N_m: number;       // Wind force per unit length
+  windForce_N_m: number;
   totalCombinedLoad_N_m: number;
 
   // Validation
-  catenary_vs_parabolic_pct: number; // Max difference between catenary and parabolic
-  uts_check: boolean;          // Whether max tension < UTS/safety_factor
-  clearance_check: boolean;    // Whether all clearances pass
+  catenary_vs_parabolic_pct: number;
+  uts_check: boolean;          // Final-track UTS check
+  clearance_check: boolean;    // Whether all clearances pass (Final state)
+
+  // Phase 4: Broken Wire
+  brokenWire: BrokenWireResult | null;
 
   // Ruling span
   rulingSpan_m: number;
@@ -122,6 +182,9 @@ export interface SagTensionResults {
     insulatorVerticalDropM: number;
     iceWeight_N_m?: number;
     icedDiameter_mm?: number;
+    wSelf_N_m: number;
+    wCombined_N_m: number;
+    perTempTraces: PerTempTrace[];
   };
 
   warnings: string[];
@@ -184,7 +247,7 @@ export const IS802_TABLE_7_GC: Record<1 | 2 | 3, Record<number, number[]>> = {
     20: [2.12, 2.04, 1.95, 1.88, 1.84, 1.80, 1.80],
     40: [2.34, 2.27, 2.20, 2.13, 2.08, 2.05, 2.02],
     60: [2.55, 2.46, 2.37, 2.28, 2.23, 2.20, 2.17],
-    80: [2.09, 2.56, 2.48, 2.41, 2.36, 2.32, 2.28],
+    80: [2.69, 2.56, 2.48, 2.41, 2.36, 2.32, 2.28],
   },
   3: {
     10: [2.05, 1.98, 1.93, 1.88, 1.83, 1.77, 1.73],
@@ -242,6 +305,7 @@ export function getDefaultSagTensionInputs(): SagTensionInputs {
     elasticModulus_N_mm2: 65000,
     thermalExpCoeff: 19.3e-6,
     finalModulus_N_mm2: 0,
+    creepStrain_pct: 0,
 
     span_m: 300,
     rulingSpan_m: 0,
@@ -273,6 +337,10 @@ export function getDefaultSagTensionInputs(): SagTensionInputs {
     insulatorWeight_kg: 100,
     insulatorArea_m2: 0.5,
     systemVoltageKv: 400,
+
+    // Phase 4: Broken Wire
+    towerType: 'suspension',
+    brokenWireLoadFactor_pct: undefined
   };
 }
 
@@ -291,6 +359,7 @@ function solveChangeOfState(
   E_Pa: number,
   alpha: number,
   deltaT_C: number,
+  warnings?: string[],
 ): number {
   const K = A_m2 * E_Pa;
   const w1L2K = w1_N_m * w1_N_m * L_m * L_m * K;
@@ -310,6 +379,7 @@ function solveChangeOfState(
     lo = 1;
     hi = K * 0.1;
     if (f(lo) * f(hi) > 0) {
+      if (warnings) warnings.push(`Bisection solver failed to bracket root for deltaT=${deltaT_C}°C. Falling back to initial tension.`);
       return T1_N;
     }
   }
@@ -372,9 +442,13 @@ export function computeSagTension(inp: SagTensionInputs): SagTensionResults {
   const A_m2 = inp.area_mm2 * 1e-6;
   const d_m = inp.diameter_mm * 1e-3;
   const w_self = inp.weight_kg_m * G;
-  const E = inp.finalModulus_N_mm2 > 0 ? inp.finalModulus_N_mm2 * 1e6 : inp.elasticModulus_N_mm2 * 1e6;
+  // Phase 3: Dual modulus — Initial (as-strung) vs Final (post-creep)
+  const E_initial = inp.elasticModulus_N_mm2 * 1e6;
+  const E_final = inp.finalModulus_N_mm2 > 0 ? inp.finalModulus_N_mm2 * 1e6 : inp.elasticModulus_N_mm2 * 1e6;
   const alpha = inp.thermalExpCoeff;
   const UTS_N = inp.uts_kN * 1000;
+  // Creep strain → equivalent thermal offset (Southwire/Alcoa method)
+  const deltaT_creep = alpha > 0 ? ((inp.creepStrain_pct ?? 0) / 100) / alpha : 0;
 
   // Unpack V2 fields
   const standard = inp.standard || 'IS802';
@@ -473,108 +547,223 @@ export function computeSagTension(inp: SagTensionInputs): SagTensionResults {
   const sagTable: SagTableRow[] = [];
   let maxSag = 0, maxSagTemp = 0;
   let minClearance = Infinity, minClearanceTemp = 0;
-  let maxTension = 0, maxTensionTemp = 0;
+  let maxTension_final = 0, maxTensionTemp_final = 0;
+  let maxTension_initial = 0, maxTensionTemp_initial = 0;
   let maxCatParDiff = 0;
+
+  const perTempTraces: PerTempTrace[] = [];
 
   let finalSwingAngle = 0;
   let finalVerticalDrop = 0;
 
+  // Helper: compute one track's TrackTrace from solve results
+  function buildTrackTrace(
+    T_ref: number, w1: number, w2: number, L_span: number,
+    A: number, E_Pa: number, alphaCoeff: number, effectiveDeltaT: number,
+    T2: number, span_actual: number, insulDrop: number, towerH: number, minCl: number
+  ): TrackTrace {
+    const K = A * E_Pa;
+    const w1L2K = w1 * w1 * L_span * L_span * K / (24 * T_ref * T_ref);
+    const w2L2K = w2 * w2 * L_span * L_span * K / (24 * T2 * T2);
+    const alphaExp = K * alphaCoeff * effectiveDeltaT;
+    const C1 = T_ref - w1L2K + alphaExp;
+    const sag_cat = catenarySag(T2, w2, span_actual);
+    const sag_par = parabolicSag(T2, w2, span_actual);
+    // For wind rows, verticalSag is adjusted later; for no-wind, verticalSag = sag_cat
+    const clearance = towerH - insulDrop - sag_cat;
+    return {
+      T1_N: T_ref, w1_N_m: w1, w2_N_m: w2, L_m: L_span,
+      K_AE_N: K, w1L2K_term_N: w1L2K, w2L2K_term_N: w2L2K,
+      deltaT_C: effectiveDeltaT, alphaExpansion_term_N: alphaExp, C1_value_N: C1,
+      T2_result_N: T2, sag_catenary_m: sag_cat, sag_parabolic_m: sag_par,
+      insulatorDrop_m: insulDrop, verticalSag_m: sag_cat, clearance_m: clearance,
+      clearance_ok: clearance >= minCl,
+    };
+  }
+
   for (const temp of inp.tempCases_C) {
     const deltaT = temp - inp.refTemp_C;
+    const deltaT_final = deltaT + deltaT_creep; // Creep adds equivalent thermal offset
 
     // Determine if ice is active for this case (typically active only in coldest conditions <= 0°C)
     const hasIce = t_ice > 0 && temp <= 0;
     const w_active_noWind = hasIce ? w_self_iced : w_self;
     const w_active_wind = hasIce ? w_combined_iced : w_combined;
     const w_active_wind_only = hasIce ? w_wind_iced : w_wind;
+    const condNoWind = hasIce ? 'Ice Only' : 'No Wind';
+    const condWind = hasIce ? 'Ice & Wind' : 'Full Wind';
 
-    // --- No Wind / Ice Only Condition ---
-    const T_noWind = solveChangeOfState(
-      T_ref_N, w_self, w_active_noWind, L, A_m2, E, alpha, deltaT
+    // ===================== No Wind / Ice Only =====================
+
+    // Track 1 — Initial (As-strung, elastic modulus, no creep offset)
+    const T_nw_init = solveChangeOfState(
+      T_ref_N, w_self, w_active_noWind, L, A_m2, E_initial, alpha, deltaT, warnings
     );
-    const sag_cat_nw = catenarySag(T_noWind, w_active_noWind, inp.span_m);
-    const sag_par_nw = parabolicSag(T_noWind, w_active_noWind, inp.span_m);
-    
-    // Ground clearance (Insulator hangs straight down)
-    const clearance_nw = (inp.towerHeight_m - inp.insulatorLength_m) - sag_cat_nw;
-    const tension_kg_nw = T_noWind / G;
+    const insulatorDrop_nw = inp.insulatorLength_m;
+    const trNwInit = buildTrackTrace(
+      T_ref_N, w_self, w_active_noWind, L, A_m2, E_initial, alpha, deltaT,
+      T_nw_init, inp.span_m, insulatorDrop_nw, inp.towerHeight_m, inp.minGroundClearance_m
+    );
 
-    sagTable.push({
-      temperature_C: temp,
-      condition: hasIce ? 'Ice Only' : 'No Wind',
-      tension_kg: tension_kg_nw,
-      tension_pctUTS: (T_noWind / UTS_N) * 100,
-      sag_m: sag_cat_nw,
-      sag_parabolic_m: sag_par_nw,
-      clearance_m: clearance_nw,
-      clearance_ok: clearance_nw >= inp.minGroundClearance_m,
-      blowout_m: 0,
-      swingAngle_deg: 0,
+    // Track 2 — Final (post-creep modulus + creep equivalent temp offset)
+    const T_nw_final = solveChangeOfState(
+      T_ref_N, w_self, w_active_noWind, L, A_m2, E_final, alpha, deltaT_final, warnings
+    );
+    const trNwFinal = buildTrackTrace(
+      T_ref_N, w_self, w_active_noWind, L, A_m2, E_final, alpha, deltaT_final,
+      T_nw_final, inp.span_m, insulatorDrop_nw, inp.towerHeight_m, inp.minGroundClearance_m
+    );
+
+    perTempTraces.push({
+      temperature_C: temp, condition: condNoWind,
+      initial: trNwInit, final: trNwFinal,
     });
 
-    if (sag_cat_nw > maxSag) { maxSag = sag_cat_nw; maxSagTemp = temp; }
-    if (clearance_nw < minClearance) { minClearance = clearance_nw; minClearanceTemp = temp; }
-    if (T_noWind > maxTension) { maxTension = T_noWind; maxTensionTemp = temp; }
+    // Legacy sagTable row — mapped to FINAL state consistently
+    const sag_final_nw = trNwFinal.sag_catenary_m;
+    const clearance_final_nw = trNwFinal.clearance_m;
+    sagTable.push({
+      temperature_C: temp, condition: condNoWind,
+      tension_kg: T_nw_final / G,
+      tension_pctUTS: (T_nw_final / UTS_N) * 100,
+      sag_m: sag_final_nw,
+      sag_parabolic_m: trNwFinal.sag_parabolic_m,
+      clearance_m: clearance_final_nw,
+      clearance_ok: clearance_final_nw >= inp.minGroundClearance_m,
+      blowout_m: 0, swingAngle_deg: 0,
+      // Explicit Initial/Final fields
+      initial_tension_kg: T_nw_init / G,
+      initial_sag_m: trNwInit.sag_catenary_m,
+      initial_clearance_m: trNwInit.clearance_m,
+      initial_clearance_ok: trNwInit.clearance_ok,
+      final_tension_kg: T_nw_final / G,
+      final_sag_m: sag_final_nw,
+      final_clearance_m: clearance_final_nw,
+      final_clearance_ok: clearance_final_nw >= inp.minGroundClearance_m,
+    });
 
-    if (sag_cat_nw > 0) {
-      const diff = Math.abs(sag_cat_nw - sag_par_nw) / sag_cat_nw * 100;
+    // Track summary metrics (Final state for sag/clearance)
+    if (sag_final_nw > maxSag) { maxSag = sag_final_nw; maxSagTemp = temp; }
+    if (clearance_final_nw < minClearance) { minClearance = clearance_final_nw; minClearanceTemp = temp; }
+    if (T_nw_final > maxTension_final) { maxTension_final = T_nw_final; maxTensionTemp_final = temp; }
+    if (T_nw_init > maxTension_initial) { maxTension_initial = T_nw_init; maxTensionTemp_initial = temp; }
+
+    if (sag_final_nw > 0) {
+      const diff = Math.abs(sag_final_nw - trNwFinal.sag_parabolic_m) / sag_final_nw * 100;
       if (diff > maxCatParDiff) maxCatParDiff = diff;
     }
 
-    // --- Full Wind / Ice & Wind Condition ---
-    const T_wind = solveChangeOfState(
-      T_ref_N, w_self, w_active_wind, L, A_m2, E, alpha, deltaT
-    );
-    const sag_cat_w = catenarySag(T_wind, w_active_wind, inp.span_m);
-    const sag_par_w = parabolicSag(T_wind, w_active_wind, inp.span_m);
-    const verticalSag_w = sag_cat_w * (w_active_noWind / w_active_wind);
+    // ===================== Full Wind / Ice & Wind =====================
 
-    // Calculate Insulator Swing Plane
+    // Track 1 — Initial
+    const T_w_init = solveChangeOfState(
+      T_ref_N, w_self, w_active_wind, L, A_m2, E_initial, alpha, deltaT, warnings
+    );
+    // Track 2 — Final
+    const T_w_final = solveChangeOfState(
+      T_ref_N, w_self, w_active_wind, L, A_m2, E_final, alpha, deltaT_final, warnings
+    );
+
+    // Swing/blowout geometry (use Final-track tension for display)
+    const sag_cat_w_final = catenarySag(T_w_final, w_active_wind, inp.span_m);
+    const sag_par_w_final = parabolicSag(T_w_final, w_active_wind, inp.span_m);
+    const verticalSag_w_final = sag_cat_w_final * (w_active_noWind / w_active_wind);
+
     const W_ins_N = insulatorWeightKg * G;
     const verticalForceAtSupport = W_ins_N + 0.5 * w_active_noWind * inp.span_m;
     const horizontalForceAtSupport = F_wind_ins + 0.5 * w_active_wind_only * inp.span_m;
-
     const swingAngleRad = Math.atan2(horizontalForceAtSupport, verticalForceAtSupport);
     const swingAngleDeg = swingAngleRad * (180 / Math.PI);
     const insulatorVerticalDrop = inp.insulatorLength_m * Math.cos(swingAngleRad);
 
-    const clearance_w = inp.towerHeight_m - insulatorVerticalDrop - verticalSag_w;
-    const tension_kg_w = T_wind / G;
+    const clearance_w_final = inp.towerHeight_m - insulatorVerticalDrop - verticalSag_w_final;
 
-    // Blowout under wind (Insulator displacement + Conductor blowout)
     const insulatorHorizontalDeflection = inp.insulatorLength_m * Math.sin(swingAngleRad);
-    const conductorBlowout = sag_cat_w * (w_active_wind_only / w_active_wind);
+    const conductorBlowout = sag_cat_w_final * (w_active_wind_only / w_active_wind);
     const totalBlowout = insulatorHorizontalDeflection + conductorBlowout;
 
-    sagTable.push({
-      temperature_C: temp,
-      condition: hasIce ? 'Ice & Wind' : 'Full Wind',
-      tension_kg: tension_kg_w,
-      tension_pctUTS: (T_wind / UTS_N) * 100,
-      sag_m: verticalSag_w,
-      sag_parabolic_m: sag_par_w * (w_active_noWind / w_active_wind),
-      clearance_m: clearance_w,
-      clearance_ok: clearance_w >= inp.minGroundClearance_m,
-      blowout_m: totalBlowout,
-      swingAngle_deg: swingAngleDeg,
+    // Build traces for wind condition — Initial track
+    const sag_cat_w_init = catenarySag(T_w_init, w_active_wind, inp.span_m);
+    const sag_par_w_init = parabolicSag(T_w_init, w_active_wind, inp.span_m);
+    const verticalSag_w_init = sag_cat_w_init * (w_active_noWind / w_active_wind);
+    const clearance_w_init = inp.towerHeight_m - insulatorVerticalDrop - verticalSag_w_init;
+
+    const trWindInit: TrackTrace = {
+      T1_N: T_ref_N, w1_N_m: w_self, w2_N_m: w_active_wind, L_m: L,
+      K_AE_N: A_m2 * E_initial,
+      w1L2K_term_N: w_self * w_self * L * L * A_m2 * E_initial / (24 * T_ref_N * T_ref_N),
+      w2L2K_term_N: w_active_wind * w_active_wind * L * L * A_m2 * E_initial / (24 * T_w_init * T_w_init),
+      deltaT_C: deltaT,
+      alphaExpansion_term_N: A_m2 * E_initial * alpha * deltaT,
+      C1_value_N: T_ref_N - (w_self * w_self * L * L * A_m2 * E_initial / (24 * T_ref_N * T_ref_N)) + A_m2 * E_initial * alpha * deltaT,
+      T2_result_N: T_w_init, sag_catenary_m: sag_cat_w_init, sag_parabolic_m: sag_par_w_init,
+      insulatorDrop_m: insulatorVerticalDrop, verticalSag_m: verticalSag_w_init,
+      clearance_m: clearance_w_init, clearance_ok: clearance_w_init >= inp.minGroundClearance_m,
+    };
+
+    const K_AE_final = A_m2 * E_final;
+    const trWindFinal: TrackTrace = {
+      T1_N: T_ref_N, w1_N_m: w_self, w2_N_m: w_active_wind, L_m: L,
+      K_AE_N: K_AE_final,
+      w1L2K_term_N: w_self * w_self * L * L * K_AE_final / (24 * T_ref_N * T_ref_N),
+      w2L2K_term_N: w_active_wind * w_active_wind * L * L * K_AE_final / (24 * T_w_final * T_w_final),
+      deltaT_C: deltaT_final,
+      alphaExpansion_term_N: K_AE_final * alpha * deltaT_final,
+      C1_value_N: T_ref_N - (w_self * w_self * L * L * K_AE_final / (24 * T_ref_N * T_ref_N)) + K_AE_final * alpha * deltaT_final,
+      T2_result_N: T_w_final, sag_catenary_m: sag_cat_w_final, sag_parabolic_m: sag_par_w_final,
+      insulatorDrop_m: insulatorVerticalDrop, verticalSag_m: verticalSag_w_final,
+      clearance_m: clearance_w_final, clearance_ok: clearance_w_final >= inp.minGroundClearance_m,
+    };
+
+    perTempTraces.push({
+      temperature_C: temp, condition: condWind,
+      initial: trWindInit, final: trWindFinal,
     });
 
-    if (T_wind > maxTension) { maxTension = T_wind; maxTensionTemp = temp; }
-    if (clearance_w < minClearance) { minClearance = clearance_w; minClearanceTemp = temp; }
+    sagTable.push({
+      temperature_C: temp, condition: condWind,
+      // Legacy fields → Final state
+      tension_kg: T_w_final / G,
+      tension_pctUTS: (T_w_final / UTS_N) * 100,
+      sag_m: verticalSag_w_final,
+      sag_parabolic_m: sag_par_w_final * (w_active_noWind / w_active_wind),
+      clearance_m: clearance_w_final,
+      clearance_ok: clearance_w_final >= inp.minGroundClearance_m,
+      blowout_m: totalBlowout,
+      swingAngle_deg: swingAngleDeg,
+      // Explicit Initial/Final
+      initial_tension_kg: T_w_init / G,
+      initial_sag_m: verticalSag_w_init,
+      initial_clearance_m: clearance_w_init,
+      initial_clearance_ok: clearance_w_init >= inp.minGroundClearance_m,
+      final_tension_kg: T_w_final / G,
+      final_sag_m: verticalSag_w_final,
+      final_clearance_m: clearance_w_final,
+      final_clearance_ok: clearance_w_final >= inp.minGroundClearance_m,
+    });
 
-    // Save one set of swing params for the trace summary
+    if (T_w_final > maxTension_final) { maxTension_final = T_w_final; maxTensionTemp_final = temp; }
+    if (T_w_init > maxTension_initial) { maxTension_initial = T_w_init; maxTensionTemp_initial = temp; }
+    if (clearance_w_final < minClearance) { minClearance = clearance_w_final; minClearanceTemp = temp; }
+
     finalSwingAngle = swingAngleDeg;
     finalVerticalDrop = insulatorVerticalDrop;
   }
 
-  // Static tension at reference temperature (no wind)
-  const T_static_nw = solveChangeOfState(T_ref_N, w_self, w_self, L, A_m2, E, alpha, 0);
-  const staticTension_kg = T_static_nw / G;
+  // Static tension at reference temperature (no wind) — INITIAL state for SC Forces
+  // This represents the as-strung everyday tension used for tower structural loading design.
+  const staticTension_kg = T_ref_N / G;
 
-  const utsCheck = maxTension <= maxAllowable_N;
-  if (!utsCheck) {
-    warnings.push(`Maximum tension (${(maxTension / G).toFixed(0)} kg = ${((maxTension / UTS_N) * 100).toFixed(1)}% UTS) exceeds allowable (${(maxAllowable_N / G).toFixed(0)} kg = ${(100 / inp.safetyFactor).toFixed(1)}% UTS)`);
+  // UTS checks — Final track (design/steady-state) and Initial track (worst-case tension)
+  const utsCheck_final = maxTension_final <= maxAllowable_N;
+  const utsCheck_initial = maxTension_initial <= maxAllowable_N;
+  if (!utsCheck_initial) {
+    warnings.push(`Initial-track max tension (${(maxTension_initial / G).toFixed(0)} kg = ${((maxTension_initial / UTS_N) * 100).toFixed(1)}% UTS) exceeds allowable (${(maxAllowable_N / G).toFixed(0)} kg = ${(100 / inp.safetyFactor).toFixed(1)}% UTS)`);
   }
+  if (!utsCheck_final) {
+    warnings.push(`Final-track max tension (${(maxTension_final / G).toFixed(0)} kg = ${((maxTension_final / UTS_N) * 100).toFixed(1)}% UTS) exceeds allowable (${(maxAllowable_N / G).toFixed(0)} kg = ${(100 / inp.safetyFactor).toFixed(1)}% UTS)`);
+  }
+
 
   const clearanceCheck = sagTable.every(r => r.clearance_ok);
   if (!clearanceCheck) {
@@ -582,9 +771,47 @@ export function computeSagTension(inp: SagTensionInputs): SagTensionResults {
     warnings.push(`Ground clearance violated at: ${failedRows.map(r => `${r.temperature_C}°C (${r.condition})`).join(', ')}`);
   }
 
+  // Phase 4: Broken Wire Condition
+  let brokenWire: BrokenWireResult | null = null;
+  if (inp.brokenWireLoadFactor_pct !== undefined) {
+    const longitudinalLoad_kg = staticTension_kg * (inp.brokenWireLoadFactor_pct / 100);
+    const towerType = inp.towerType ?? 'suspension';
+    
+    let insulatorSwingAngle_deg: number | undefined;
+    let insulatorSwingWarning: string | undefined;
+
+    if (towerType === 'suspension') {
+      const W_ins_N = (inp.insulatorWeight_kg ?? 100) * G;
+      const W_cond_N = w_self * L; // full weight of conductor in span
+      // Vertical force at support = insulator weight + half conductor weight of intact span
+      const verticalForce_N = W_ins_N + 0.5 * W_cond_N;
+      const longitudinalLoad_N = longitudinalLoad_kg * G;
+      
+      const angleRad = Math.atan(longitudinalLoad_N / verticalForce_N);
+      insulatorSwingAngle_deg = angleRad * (180 / Math.PI);
+
+      if (insulatorSwingAngle_deg > 60) {
+        insulatorSwingWarning = "Calculated swing angle exceeds typical insulator design range (>60°). Suspension towers are typically not designed to fully resist this load without damage or controlled failure. Value is purely illustrative.";
+      }
+    }
+
+    brokenWire = {
+      towerType,
+      operatingTension_kg: staticTension_kg,
+      loadFactorApplied_pct: inp.brokenWireLoadFactor_pct,
+      longitudinalLoad_kg,
+      insulatorSwingAngle_deg,
+      insulatorSwingWarning
+    };
+
+    if (insulatorSwingWarning) {
+      warnings.push(`Broken Wire: ${insulatorSwingWarning}`);
+    }
+  }
+
   return {
     staticTension_kg,
-    staticTension_kN: T_static_nw / 1000,
+    staticTension_kN: T_ref_N / 1000,
 
     sagTable,
 
@@ -592,17 +819,23 @@ export function computeSagTension(inp: SagTensionInputs): SagTensionResults {
     maxSag_temp_C: maxSagTemp,
     minClearance_m: minClearance === Infinity ? 0 : minClearance,
     minClearance_temp_C: minClearanceTemp,
-    maxTension_kg: maxTension / G,
-    maxTension_temp_C: maxTensionTemp,
+    maxTension_kg: maxTension_final / G,
+    maxTension_temp_C: maxTensionTemp_final,
+
+    initial_maxTension_kg: maxTension_initial / G,
+    initial_maxTension_temp_C: maxTensionTemp_initial,
+    initial_uts_check: utsCheck_initial,
 
     windForce_N_m: w_wind,
     totalCombinedLoad_N_m: w_combined,
 
     catenary_vs_parabolic_pct: maxCatParDiff,
-    uts_check: utsCheck,
+    uts_check: utsCheck_initial && utsCheck_final,  // Both tracks must pass
     clearance_check: clearanceCheck,
 
     rulingSpan_m: L,
+
+    brokenWire,
 
     trace: {
       standard,
@@ -626,7 +859,10 @@ export function computeSagTension(inp: SagTensionInputs): SagTensionResults {
       insulatorSwingAngleDeg: finalSwingAngle,
       insulatorVerticalDropM: finalVerticalDrop,
       iceWeight_N_m: w_ice,
-      icedDiameter_mm: t_ice > 0 ? d_iced * 1000 : undefined
+      icedDiameter_mm: t_ice > 0 ? d_iced * 1000 : undefined,
+      wSelf_N_m: w_self,
+      wCombined_N_m: w_combined,
+      perTempTraces
     },
 
     warnings,

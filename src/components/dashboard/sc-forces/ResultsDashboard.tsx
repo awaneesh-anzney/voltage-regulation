@@ -2,6 +2,9 @@
 
 import { CheckCircle2, XCircle, AlertTriangle, TrendingUp, ArrowDown, Grip, Shield } from "lucide-react";
 import type { SCInputs, SCResults } from "@/lib/scForcesEngine";
+import { buildEngineTrace } from "@/lib/scForcesEngine";
+import { VerificationBadge } from "./VerificationBadge";
+import type { VerificationTag } from "@/lib/types/verification";
 
 const G = 9.807;
 
@@ -10,10 +13,11 @@ interface ResultsDashboardProps {
   results: SCResults;
 }
 
-function KpiCard({ label, value, sub, status, highlight }: {
+function KpiCard({ label, value, sub, status, highlight, badgeTag }: {
   label: string; value: string; sub: string;
   status?: "ok" | "warn" | "danger" | "info";
   highlight?: boolean;
+  badgeTag?: VerificationTag;
 }) {
   const colorMap = {
     ok: "text-emerald-400", warn: "text-amber-400",
@@ -27,7 +31,10 @@ function KpiCard({ label, value, sub, status, highlight }: {
       <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent ${
         status === 'danger' ? 'via-red-500' : status === 'warn' ? 'via-amber-500' : status === 'ok' ? 'via-emerald-500' : 'via-blue-500'
       } to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
-      <div className="text-[11px] font-medium text-slate-500 mb-1.5">{label}</div>
+      <div className="text-[11px] font-medium text-slate-500 mb-1.5 flex justify-between items-start gap-2">
+        <span>{label}</span>
+        {badgeTag && <VerificationBadge tag={badgeTag} />}
+      </div>
       <div className={`font-mono text-[22px] font-semibold ${color}`}>{value}</div>
       <div className="text-[10px] text-slate-600 mt-1 font-mono">{sub}</div>
     </div>
@@ -75,6 +82,8 @@ export function ResultsDashboard({ inputs, results }: ResultsDashboardProps) {
   const { Ftd, Ffd, Fpi, Fmax, Fst, bh, amin, amin_req, clCheck,
     k, r, fes, fed, deltam_deg, delta_eff_deg, psi, Tres } = results;
 
+  const trace = buildEngineTrace(inputs, results);
+
   const maxForce = Math.max(Ffd, 1);
   const governing = Fmax === Ffd ? "Drop Force" : Fmax === Fpi ? "Pinch Force" : "Tensile Force";
 
@@ -113,6 +122,7 @@ export function ResultsDashboard({ inputs, results }: ResultsDashboardProps) {
           sub={`${Math.round(Fmax / G).toLocaleString()} kg · ${governing}`}
           status="danger"
           highlight
+          badgeTag={trace.governingForce.verification}
         />
         <KpiCard
           label="Max Swing Angle δm"

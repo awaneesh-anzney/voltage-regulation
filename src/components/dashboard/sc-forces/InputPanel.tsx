@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Zap, Ruler, Cable, Settings, Layers } from "lucide-react";
 import { autoFillSCForcesFields } from "@/lib/ceaClearances";
-import type { SCInputs } from "@/lib/scForcesEngine";
+import type { SCInputs, SCResults, FfdMethod } from "@/lib/scForcesEngine";
 import { CONDUCTOR_LIBRARY, getConductorTypes, getConductorsByType } from "@/lib/conductorLibrary";
 import type { ConductorSpec } from "@/lib/conductorLibrary";
 
 interface InputPanelProps {
   inputs: SCInputs;
+  results?: SCResults;
   updateInput: <K extends keyof SCInputs>(key: K, value: SCInputs[K]) => void;
   updateInputs: (partial: Partial<SCInputs>) => void;
 }
@@ -108,7 +109,7 @@ function SectionCard({ title, icon: Icon, children }: { title: string; icon: Rea
   );
 }
 
-export function InputPanel({ inputs, updateInput, updateInputs }: InputPanelProps) {
+export function InputPanel({ inputs, results, updateInput, updateInputs }: InputPanelProps) {
   const [selectedType, setSelectedType] = useState<string>(
     CONDUCTOR_LIBRARY.find(c => c.name === 'Bull')?.type || 'AAC'
   );
@@ -371,6 +372,27 @@ export function InputPanel({ inputs, updateInput, updateInputs }: InputPanelProp
               <Field label="μ₀/2π" unit="H/m">
                 <div className="text-sm text-slate-500 font-mono py-2">2×10⁻⁷ (const)</div>
               </Field>
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-white/[0.04]">
+              <Field label="Drop Force Formula (F<sub>f,d</sub>)">
+                <SelectInput
+                  value={inputs.ffdMethod ?? "OCR_Recon"}
+                  onChange={v => updateInput('ffdMethod', v as FfdMethod)}
+                  options={[
+                    { value: 'OCR_Recon', label: 'OCR-Reconstructed (default)' },
+                    { value: 'AI_Candidate', label: 'AI-Candidate (comparison only)' },
+                    { value: 'DISABLED', label: 'Disabled (Ffd = 0)' },
+                  ]}
+                />
+                <div className="text-[10px] text-slate-500 mt-1">IEC 60865-1 mentions drop force in this clause (formula not verified against a clean copy in this build).</div>
+              </Field>
+              {results && results.ffdTriggered && (
+                <div className="text-xs text-orange-600 bg-orange-500/10 border border-orange-500/20 p-2 rounded mt-2">
+                  ⚠️ Both Drop Force formulas are unverified against a clean IEC 60865-1 source.<br/>
+                  OCR: {((results.Ffd_ocrRecon ?? 0) / 1000).toFixed(2)} kN vs AI: {((results.Ffd_aiCandidate ?? 0) / 1000).toFixed(2)} kN — differ by {(Math.abs((results.Ffd_ocrRecon ?? 0) - (results.Ffd_aiCandidate ?? 0)) / 1000).toFixed(2)} kN.
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -75,8 +75,17 @@ export function SCForcesTab({ faultFeedData, sagFeedData, onFaultFeedApplied, on
     } catch { /* ignore quota errors */ }
   }, [projects, hydrated]);
 
-  // Reactive computation — runs whenever inputs change
-  const results: SCResults = useMemo(() => computeSCForces(inputs), [inputs]);
+  const { results, validationErrors } = useMemo(() => {
+    try {
+      return { results: computeSCForces(inputs), validationErrors: [] };
+    } catch (err: any) {
+      if (err.name === "SCInputValidationError") {
+        return { results: null as any, validationErrors: err.errors };
+      }
+      console.error(err);
+      return { results: null as any, validationErrors: [] };
+    }
+  }, [inputs]);
 
   // Input updater — merges partial updates into inputs
   const updateInput = useCallback(<K extends keyof SCInputs>(key: K, value: SCInputs[K]) => {
@@ -103,9 +112,19 @@ export function SCForcesTab({ faultFeedData, sagFeedData, onFaultFeedApplied, on
       </div>
 
       {/* Warnings from engine */}
-      {results.warnings.length > 0 && (
+      {validationErrors && validationErrors.length > 0 && (
         <div className="space-y-1.5">
-          {results.warnings.map((w, i) => (
+          {validationErrors.map((e: any, i: number) => (
+            <div key={i} className="flex items-start gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] leading-relaxed">
+              <ShieldAlert className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span><strong>[{e.field}]</strong> {e.message}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {results && results.warnings.length > 0 && (
+        <div className="space-y-1.5">
+          {results.warnings.map((w: string, i: number) => (
             <div key={i} className="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-500/8 border border-amber-500/20 text-amber-300 text-[11px] leading-relaxed">
               <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
               <span>{w}</span>
@@ -213,12 +232,12 @@ export function SCForcesTab({ faultFeedData, sagFeedData, onFaultFeedApplied, on
       <div className="mt-1">
         {activeTab === "input" && (
           <div className="space-y-4">
-            <InputPanel inputs={inputs} updateInput={updateInput} updateInputs={updateInputs} />
+            <InputPanel inputs={inputs} updateInput={updateInput} updateInputs={updateInputs} results={results} />
             <ValidationPanel inputs={inputs} results={results} />
           </div>
         )}
         {activeTab === "results" && <ResultsDashboard inputs={inputs} results={results} />}
-        {activeTab === "trace" && <EquationTrace results={results} />}
+        {activeTab === "trace" && <EquationTrace inputs={inputs} results={results} />}
         {activeTab === "visual" && <GraphsPanel inputs={inputs} results={results} />}
         {activeTab === "whatif" && <WhatIfPanel baseInputs={inputs} baseResults={results} />}
         {activeTab === "report" && <ReportExport inputs={inputs} results={results} />}

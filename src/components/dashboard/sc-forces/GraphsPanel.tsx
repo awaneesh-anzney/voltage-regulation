@@ -81,7 +81,7 @@ export function GraphsPanel({ inputs, results }: GraphsPanelProps) {
 
   return (
     <div className="space-y-4">
-      {/* IEC Fig.9 — Interactive v2 Chart */}
+      {/* Interactive v2 Chart */}
       <V2ChartPanel inputs={inputs} results={results} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

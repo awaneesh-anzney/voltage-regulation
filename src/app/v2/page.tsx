@@ -145,7 +145,17 @@ export default function V2Page() {
   const [staleSagDismissed, setStaleSagDismissed] = useState(false);
 
   // ─── Derived calculations ───
-  const scResults = useMemo(() => computeSCForces(project.scInputs), [project.scInputs]);
+  const { scResults, scValidationErrors } = useMemo(() => {
+    try {
+      return { scResults: computeSCForces(project.scInputs), scValidationErrors: [] };
+    } catch (err: any) {
+      if (err.name === "SCInputValidationError") {
+        return { scResults: null, scValidationErrors: err.errors };
+      }
+      console.error(err);
+      return { scResults: null, scValidationErrors: [] };
+    }
+  }, [project.scInputs]);
   const sagResults = useMemo(() => computeSagTension(project.sagInputs), [project.sagInputs]);
 
   // ─── Update helpers ───
@@ -467,6 +477,16 @@ export default function V2Page() {
                   }}
                   onDismiss={() => setStaleSagDismissed(true)}
                 />
+              </div>
+            )}
+            {scValidationErrors.length > 0 && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded text-sm mb-4">
+                <strong>Validation Errors:</strong>
+                <ul className="list-disc pl-5 mt-1">
+                  {scValidationErrors.map((e: any, i: number) => (
+                    <li key={i}>[{e.field}] {e.message}</li>
+                  ))}
+                </ul>
               </div>
             )}
             <SCForcesCanvas inputs={project.scInputs} results={scResults} />

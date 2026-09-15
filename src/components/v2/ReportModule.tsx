@@ -5,6 +5,8 @@ import { Download, FileText, FileSpreadsheet, FileJson, Activity, ShieldAlert, C
 import type { SCInputs, SCResults } from "@/lib/scForcesEngine";
 import type { FaultInput, FaultResults } from "@/lib/faultSolver";
 import type { SagTensionInputs, SagTensionResults } from "@/lib/sagTensionEngine";
+import { VerificationBadge } from "@/components/dashboard/sc-forces/VerificationBadge";
+import { formatClauseDisplay } from "@/lib/clauseRegistry";
 
 interface ReportModuleProps {
   project: any;
@@ -668,6 +670,62 @@ function SCForcesReportTemplate({ inputs, results, onBack }: { inputs: SCInputs,
 }
 
 function FaultReportTemplate({ inputs, results, onBack }: { inputs: FaultInput, results: FaultResults, onBack: () => void }) {
+  const { trace } = results;
+
+  const includeMotor = trace.includeMotor;
+  const rT = trace.zTransPos?.r ?? 0;
+  const xT = trace.zTransPos?.x ?? 0;
+
+  const traceRows = [
+    { num: 1, param: "System Voltage (line-to-line)", html: "V<sub>n</sub>", val: `${trace.voltageKv.toFixed(1)} kV`, ref: "-" },
+    { num: 2, param: "Source short-circuit capacity", html: "S''<sub>sc</sub>", val: `${trace.sourceMva.toFixed(1)} MVA`, ref: "-" },
+    { num: 3, param: "IEC Voltage Factor", html: "c", val: `${trace.cFactor.toFixed(2)}`, ref: "IEC 60909 Table 1" },
+    { num: 4, param: "Source Pos. Seq. Impedance magnitude", html: "|Z<sub>Q</sub>| = c × V<sub>n</sub>² / S''<sub>sc</sub>", val: `${trace.zSourcePos.mag.toFixed(4)} Ω`, ref: "IEC 60909 Cl. 3.2" },
+    { num: 5, param: "Source Pos. Seq. Resistance", html: "R<sub>Q</sub> = 0.1 × X<sub>Q</sub>", val: `${trace.zSourcePos.r.toFixed(4)} Ω`, ref: "Assumed X/R = 10" },
+    { num: 6, param: "Source Pos. Seq. Reactance", html: "X<sub>Q</sub> = |Z<sub>Q</sub>| / √1.01", val: `${trace.zSourcePos.x.toFixed(4)} Ω`, ref: "Assumed X/R = 10" },
+    { num: 7, param: "Source Zero Seq. Impedance R", html: "R<sub>Q0</sub> = R<sub>Q</sub> × mult<sub>R</sub>", val: `${trace.zSourceZero.r.toFixed(4)} Ω`, ref: "Grounding config" },
+    { num: 8, param: "Source Zero Seq. Impedance X", html: "X<sub>Q0</sub> = X<sub>Q</sub> × mult<sub>X</sub>", val: `${trace.zSourceZero.x.toFixed(4)} Ω`, ref: "Grounding config" }
+  ];
+
+  let currentNum = 9;
+
+  if (trace.includeTransformer && trace.zTransPos) {
+    traceRows.push(
+      { num: currentNum++, param: "Xfmr Pos. Seq. Impedance magnitude", html: "|Z<sub>T</sub>| = (%Z / 100) × V<sub>n</sub>² / S<sub>T</sub>", val: `${trace.zTransPos.mag.toFixed(4)} Ω`, ref: "IS 2026 / IEC 60076" },
+      { num: currentNum++, param: "Xfmr Pos. Seq. Resistance", html: "R<sub>T</sub> = 0.05 × X<sub>T</sub>", val: `${rT.toFixed(4)} Ω`, ref: "Assumed X/R = 20" },
+      { num: currentNum++, param: "Xfmr Pos. Seq. Reactance", html: "X<sub>T</sub> = |Z<sub>T</sub>| / √1.0025", val: `${xT.toFixed(4)} Ω`, ref: "Assumed X/R = 20" },
+      { num: currentNum++, param: "Xfmr Winding Vector Group", html: "Vector Group", val: `${trace.transformerVectorGroup ?? "Dyn"}`, ref: "-" }
+    );
+  }
+
+  if (includeMotor && trace.zMotorPos) {
+    traceRows.push(
+      { num: currentNum++, param: "Motor Pos. Seq. Impedance magnitude", html: "|Z<sub>M</sub>| = K<sub>M</sub> × (Xd'' / 100) × V<sub>n</sub>² / MVA<sub>M</sub>", val: `${trace.zMotorPos.mag.toFixed(4)} Ω`, ref: "IEC 60909 Cl. 3.9" },
+      { num: currentNum++, param: "Motor Pos. Seq. Resistance", html: "R<sub>M</sub> = X<sub>M</sub> / (X/R)<sub>M</sub>", val: `${trace.zMotorPos.r.toFixed(4)} Ω`, ref: `X/R = ${trace.motorXRRatio ?? 10}` },
+      { num: currentNum++, param: "Motor Pos. Seq. Reactance", html: "X<sub>M</sub> = |Z<sub>M</sub>| / √(1 + 1/(X/R)²)", val: `${trace.zMotorPos.x.toFixed(4)} Ω`, ref: `Xd'' = ${trace.motorXdPercent ?? 20}%` }
+    );
+  }
+
+  traceRows.push(
+    { num: currentNum++, param: "Line Pos. Seq. Impedance R", html: "R<sub>L1</sub> = R' × L<sub>fault</sub>", val: `${trace.zLinePos.r.toFixed(4)} Ω`, ref: `L = ${trace.faultLocationKm.toFixed(2)} km` },
+    { num: currentNum++, param: "Line Pos. Seq. Impedance X", html: "X<sub>L1</sub> = X' × L<sub>fault</sub>", val: `${trace.zLinePos.x.toFixed(4)} Ω`, ref: `L = ${trace.faultLocationKm.toFixed(2)} km` },
+    { num: currentNum++, param: "Line Zero Seq. Impedance R", html: "R<sub>L0</sub> = R<sub>L1</sub> × mult<sub>R_line</sub>", val: `${trace.zLineZero.r.toFixed(4)} Ω`, ref: "-" },
+    { num: currentNum++, param: "Line Zero Seq. Impedance X", html: "X<sub>L0</sub> = X<sub>L1</sub> × mult<sub>X_line</sub>", val: `${trace.zLineZero.x.toFixed(4)} Ω`, ref: "-" }
+  );
+
+  const totalPosRFormula = includeMotor ? "Z₁<sub>R</sub> = (R<sub>Q</sub>+R<sub>T</sub>+R<sub>L1</sub>) ∥ Z<sub>M</sub>" : "R₁ = R<sub>Q</sub> + R<sub>T</sub> + R<sub>L1</sub>";
+  const totalPosXFormula = includeMotor ? "Z₁<sub>X</sub> = (X<sub>Q</sub>+X<sub>T</sub>+X<sub>L1</sub>) ∥ Z<sub>M</sub>" : "X₁ = X<sub>Q</sub> + X<sub>T</sub> + X<sub>L1</sub>";
+
+  traceRows.push(
+    { num: currentNum++, param: "Total Pos. Seq. Resistance at fault", html: totalPosRFormula, val: `${trace.zTotalPos.r.toFixed(4)} Ω`, ref: includeMotor ? "Parallel combination" : "Series sum" },
+    { num: currentNum++, param: "Total Pos. Seq. Reactance at fault", html: totalPosXFormula, val: `${trace.zTotalPos.x.toFixed(4)} Ω`, ref: includeMotor ? "Parallel combination" : "Series sum" },
+    { num: currentNum++, param: "Total Zero Seq. Resistance at fault", html: "R₀ = R<sub>Q0</sub> + R<sub>T0</sub> + R<sub>L0</sub>", val: `${trace.zTotalZero.r.toFixed(4)} Ω`, ref: "Series sum" },
+    { num: currentNum++, param: "Total Zero Seq. Reactance at fault", html: "X₀ = X<sub>Q0</sub> + X<sub>T0</sub> + X<sub>L0</sub>", val: `${trace.zTotalZero.x.toFixed(4)} Ω`, ref: "Series sum" },
+    { num: currentNum++, param: "Peak short-circuit factor (3-phase)", html: "κ = 1.02 + 0.98 · e<sup>-3 / (X₁/R₁)</sup>", val: `${trace.kappa3ph.toFixed(4)}`, ref: "IEC 60909 Cl. 4.3" },
+    { num: currentNum++, param: "DC decay time constant (3-phase)", html: "τ = X₁ / (2π · f · R₁)", val: `${(trace.tau3ph * 1000).toFixed(1)} ms`, ref: "f = 50 Hz" },
+    { num: currentNum++, param: "Thermal equivalent factor m", html: "m = [e<sup>4f·T<sub>k</sub>·ln(κ-1)</sup> - 1] / [2f·T<sub>k</sub>·ln(κ-1)]", val: `${trace.m3ph.toFixed(4)}`, ref: "IEC 60909 Annex A.3" }
+  );
+
   return (
     <div className="w-full h-full relative">
       <div className="absolute top-4 right-4 flex items-center gap-3 print:hidden z-10">
@@ -696,10 +754,16 @@ function FaultReportTemplate({ inputs, results, onBack }: { inputs: FaultInput, 
           .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
           .pdf-table th, .pdf-table td { border: 1px solid #000; padding: 4px 6px; text-align: left; font-size: 11px; }
           .pdf-table th { background: #f0f0f0; font-weight: bold; }
+          .pdf-trace-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; break-inside: auto; }
+          .pdf-trace-table thead { display: table-header-group; }
+          .pdf-trace-table tr { break-inside: avoid; page-break-inside: avoid; }
+          .pdf-trace-table th, .pdf-trace-table td { border: 1px solid #000; padding: 3px 6px; font-size: 10px; }
+          .pdf-trace-table th { text-align: left; font-weight: bold; background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
         }
       `}} />
 
-      <div id="report-print-area" className="w-full bg-white text-black min-h-screen font-sans text-[13px] leading-tight print:block hidden p-4">
+      <div id="report-print-area" className="w-full bg-white text-black min-h-screen font-sans text-[13px] leading-tight print:block p-4">
+        {/* Header */}
         <div className="flex justify-between items-end border-b-2 border-black pb-2 mb-6">
           <div>
             <h1 className="text-2xl font-black uppercase tracking-tight m-0 p-0 leading-none">Fault Analysis Report</h1>
@@ -717,60 +781,240 @@ function FaultReportTemplate({ inputs, results, onBack }: { inputs: FaultInput, 
               <tbody>
                 <tr><td>System Voltage (U_n)</td><td className="font-mono">{inputs.voltageKv.toFixed(2)} kV</td></tr>
                 <tr><td>Source Fault Level</td><td className="font-mono">{inputs.sourceMva.toFixed(2)} MVA</td></tr>
-                <tr><td>Line Length</td><td className="font-mono">{inputs.lineLengthKm.toFixed(2)} km</td></tr>
-                <tr><td>Positive Seq R1</td><td className="font-mono">{inputs.lineRPerKm.toFixed(4)} Ω/km</td></tr>
-                <tr><td>Positive Seq X1</td><td className="font-mono">{inputs.lineXPerKm.toFixed(4)} Ω/km</td></tr>
-                <tr><td>Zero Seq R0 Multiplier</td><td className="font-mono">{inputs.zeroSeqRMultiplier.toFixed(2)}×</td></tr>
-                <tr><td>Zero Seq X0 Multiplier</td><td className="font-mono">{inputs.zeroSeqXMultiplier.toFixed(2)}×</td></tr>
+                <tr><td>Source Grounding</td><td className="font-mono capitalize">{inputs.sourceGroundingType ?? "solid"}</td></tr>
+                <tr><td>IEC Voltage Factor (c)</td><td className="font-mono">{inputs.cFactor.toFixed(2)}</td></tr>
+                <tr><td>Fault Location</td><td className="font-mono">{(inputs.faultLocationKm ?? inputs.lineLengthKm).toFixed(2)} km (Line: {inputs.lineLengthKm.toFixed(2)} km)</td></tr>
+                {inputs.includeTransformer && (
+                  <>
+                    <tr><td>Transformer Rating</td><td className="font-mono">{inputs.transformerMva?.toFixed(2)} MVA ({inputs.transformerReactancePct?.toFixed(2)}%)</td></tr>
+                    <tr><td>Transformer Vector Group</td><td className="font-mono">{inputs.transformerVectorGroup}</td></tr>
+                  </>
+                )}
+                {inputs.motorContribution?.includeMotor && (
+                  <>
+                    <tr><td>Motor Contribution</td><td className="font-mono">{inputs.motorContribution.totalMotorMva.toFixed(2)} MVA</td></tr>
+                    <tr><td>Motor Xd'' / X/R</td><td className="font-mono">{inputs.motorContribution.motorXdPercent.toFixed(1)}% / {inputs.motorContribution.motorXRRatio.toFixed(1)}</td></tr>
+                  </>
+                )}
               </tbody>
             </table>
           </div>
 
           <div className="calc-block">
-            <h2 className="text-lg font-bold mb-3 uppercase border-b border-gray-300">2. Fault Currents</h2>
-            <table className="pdf-table">
-              <tbody>
-                <tr><td>3-Phase Fault (I_k3)</td><td className="font-mono font-bold">{results.i3Phase.toFixed(2)} kA</td></tr>
-                <tr><td>Single Line to Ground (I_k1)</td><td className="font-mono font-bold">{results.iLineToGround.toFixed(2)} kA</td></tr>
-                <tr><td>Line to Line (I_k2)</td><td className="font-mono">{results.iLineToLine.toFixed(2)} kA</td></tr>
-                <tr><td>Line to Line to Ground</td><td className="font-mono">{results.iLineToLineToGround.toFixed(2)} kA</td></tr>
-              </tbody>
-            </table>
+            <h2 className="text-lg font-bold mb-3 uppercase border-b border-gray-300">2. Methodology Notes & Assumptions</h2>
+            <ul className="list-disc pl-5 text-[11px] leading-relaxed">
+              <li>Source X/R ratio assumed = 10 (unless specified).</li>
+              {inputs.includeTransformer && <li>Transformer X/R ratio assumed = 20 (conservative).</li>}
+              {inputs.motorContribution?.includeMotor && (
+                <>
+                  <li><strong className="text-red-700">Motor impedance correction factor K_M assumed = 1.0</strong> (simplified overestimate).</li>
+                  <li><strong className="text-red-700">Motor breaking-current decay (q-factor) not modeled</strong>; conservative overestimate used.</li>
+                </>
+              )}
+              <li>Thermal equivalent factor <i>m</i> calculated using exact IEC 60909-0 Annex A.3 κ-based logarithmic formula.</li>
+              <li>
+                {inputs.faultType === "near-to-generator"
+                  ? "Breaking current includes μ-factor decay for near-to-generator conditions (IEC 60909 Cl. 4.4)."
+                  : "Symmetrical breaking current (I_b) calculated under far-from-generator short circuit assumption."}
+              </li>
+            </ul>
           </div>
         </div>
 
-        <div className="mt-8 calc-block">
-           <h2 className="text-lg font-bold mb-3 uppercase border-b border-gray-300">3. Sequence Impedances (Ω)</h2>
-           <table className="pdf-table">
+        <div className="mt-6 calc-block">
+          <h2 className="text-lg font-bold mb-3 uppercase border-b border-gray-300">3. Fault Currents (kA)</h2>
+          <table className="pdf-table text-center">
+            <thead>
+              <tr>
+                <th className="text-left">Fault Type</th>
+                <th className="text-center">Initial (I_k'')</th>
+                <th className="text-center">Peak (i_p)</th>
+                <th className="text-center">Breaking (I_b)</th>
+                <th className="text-center">Thermal (I_th)</th>
+                <th className="text-center">Power (MVA)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="text-left font-bold">3-Phase Symmetrical</td>
+                <td className="font-mono font-bold">{results.i3Phase.toFixed(3)}</td>
+                <td className="font-mono">{results.ip3Phase.toFixed(3)}</td>
+                <td className="font-mono">{results.ib3Phase.toFixed(3)}</td>
+                <td className="font-mono">{results.ith3Phase.toFixed(3)}</td>
+                <td className="font-mono">{results.mva3Phase.toFixed(1)}</td>
+              </tr>
+              <tr>
+                <td className="text-left">Line-to-Ground (SLG)</td>
+                <td className="font-mono font-bold">{results.iLineToGround.toFixed(3)}</td>
+                <td className="font-mono">{results.ipLineToGround.toFixed(3)}</td>
+                <td className="font-mono">{results.ibLineToGround.toFixed(3)}</td>
+                <td className="font-mono">{results.ithLineToGround.toFixed(3)}</td>
+                <td className="font-mono">{results.mvaLineToGround.toFixed(1)}</td>
+              </tr>
+              <tr>
+                <td className="text-left">Line-to-Line (LL)</td>
+                <td className="font-mono font-bold">{results.iLineToLine.toFixed(3)}</td>
+                <td className="font-mono">{results.ipLineToLine.toFixed(3)}</td>
+                <td className="font-mono">{results.ibLineToLine.toFixed(3)}</td>
+                <td className="font-mono">{results.ithLineToLine.toFixed(3)}</td>
+                <td className="font-mono">{results.mvaLineToLine.toFixed(1)}</td>
+              </tr>
+              <tr>
+                <td className="text-left">Line-to-Line-to-Ground</td>
+                <td className="font-mono font-bold">{results.iLineToLineToGround.toFixed(3)}</td>
+                <td className="font-mono">{results.ipLineToLineToGround.toFixed(3)}</td>
+                <td className="font-mono">{results.ibLineToLineToGround.toFixed(3)}</td>
+                <td className="font-mono">{results.ithLineToLineToGround.toFixed(3)}</td>
+                <td className="font-mono">{results.mvaLineToLineToGround.toFixed(1)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-6 calc-block">
+           <h2 className="text-lg font-bold mb-3 uppercase border-b border-gray-300">4. Sequence Impedances (Ω)</h2>
+           <table className="pdf-table text-center">
               <thead>
                 <tr>
-                  <th>Sequence Component</th>
-                  <th>Resistance (R)</th>
-                  <th>Reactance (X)</th>
-                  <th>Impedance (|Z|)</th>
+                  <th className="text-left">Sequence Component</th>
+                  <th className="text-center">Resistance (R)</th>
+                  <th className="text-center">Reactance (X)</th>
+                  <th className="text-center">Impedance (|Z|)</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>Source (Positive/Negative)</td>
+                  <td className="text-left">Source (Positive)</td>
                   <td className="font-mono">{results.zSource.r.toFixed(4)}</td>
                   <td className="font-mono">{results.zSource.x.toFixed(4)}</td>
                   <td className="font-mono">{results.zSource.mag.toFixed(4)}</td>
                 </tr>
+                {trace.includeTransformer && trace.zTransPos && (
+                  <tr>
+                    <td className="text-left">Transformer (Positive)</td>
+                    <td className="font-mono">{trace.zTransPos.r.toFixed(4)}</td>
+                    <td className="font-mono">{trace.zTransPos.x.toFixed(4)}</td>
+                    <td className="font-mono">{trace.zTransPos.mag.toFixed(4)}</td>
+                  </tr>
+                )}
+                {trace.includeMotor && trace.zMotorPos && (
+                  <tr>
+                    <td className="text-left">Motor (Positive)</td>
+                    <td className="font-mono">{trace.zMotorPos.r.toFixed(4)}</td>
+                    <td className="font-mono">{trace.zMotorPos.x.toFixed(4)}</td>
+                    <td className="font-mono">{trace.zMotorPos.mag.toFixed(4)}</td>
+                  </tr>
+                )}
                 <tr>
-                  <td>Line (Positive/Negative)</td>
+                  <td className="text-left">Line (Positive)</td>
                   <td className="font-mono">{results.zLinePositive.r.toFixed(4)}</td>
                   <td className="font-mono">{results.zLinePositive.x.toFixed(4)}</td>
                   <td className="font-mono">{results.zLinePositive.mag.toFixed(4)}</td>
                 </tr>
                 <tr>
-                  <td>Line (Zero Seq)</td>
+                  <td className="text-left">Line (Zero Seq)</td>
                   <td className="font-mono">{results.zLineZero.r.toFixed(4)}</td>
                   <td className="font-mono">{results.zLineZero.x.toFixed(4)}</td>
                   <td className="font-mono">{results.zLineZero.mag.toFixed(4)}</td>
                 </tr>
+                <tr className="font-bold bg-gray-50">
+                  <td className="text-left">Total Positive (Z₁)</td>
+                  <td className="font-mono">{results.zTotalPositive.r.toFixed(4)}</td>
+                  <td className="font-mono">{results.zTotalPositive.x.toFixed(4)}</td>
+                  <td className="font-mono">{results.zTotalPositive.mag.toFixed(4)}</td>
+                </tr>
+                <tr className="font-bold bg-gray-50">
+                  <td className="text-left">Total Zero (Z₀)</td>
+                  <td className="font-mono">{results.zTotalZero.r.toFixed(4)}</td>
+                  <td className="font-mono">{results.zTotalZero.x.toFixed(4)}</td>
+                  <td className="font-mono">{results.zTotalZero.mag.toFixed(4)}</td>
+                </tr>
               </tbody>
            </table>
+        </div>
+
+        <div className="mt-4 calc-block">
+          <h2 className="text-lg font-bold mb-3 uppercase border-b border-gray-300">5. Dynamic Factors (3-Phase)</h2>
+          <table className="pdf-table text-center" style={{ maxWidth: '60%' }}>
+            <thead>
+              <tr>
+                <th className="text-left">Parameter</th>
+                <th className="text-center">Symbol</th>
+                <th className="text-center">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="text-left">Peak Factor</td>
+                <td className="font-mono">κ</td>
+                <td className="font-mono">{trace.kappa3ph.toFixed(4)}</td>
+              </tr>
+              <tr>
+                <td className="text-left">DC Time Constant</td>
+                <td className="font-mono">τ</td>
+                <td className="font-mono">{(trace.tau3ph * 1000).toFixed(1)} ms</td>
+              </tr>
+              <tr>
+                <td className="text-left">Thermal Equivalent Factor</td>
+                <td className="font-mono">m</td>
+                <td className="font-mono">{trace.m3ph.toFixed(4)}</td>
+              </tr>
+              {trace.faultType === "near-to-generator" && (
+                <tr>
+                  <td className="text-left">Breaking Factor</td>
+                  <td className="font-mono">μ</td>
+                  <td className="font-mono">{(results.ib3Phase / results.i3Phase).toFixed(4)}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* FULL EQUATION TRACE */}
+        <div style={{ breakBefore: 'page', pageBreakBefore: 'always' }}></div>
+        <div className="text-center mb-6 border-b border-black pb-2 mt-8 print:mt-0">
+          <p className="text-[11px]">Fault Analysis Calculation<br/>As per IEC 60909-0</p>
+        </div>
+        
+        <h2 className="text-lg font-bold mb-4 uppercase">6. Equation Trace Summary</h2>
+        <p className="text-[13px] mb-4">Step-by-step intermediate variables and formulae.</p>
+        
+        <table className="pdf-trace-table">
+          <thead>
+            <tr>
+              <th className="w-8 text-center">#</th>
+              <th>Parameter</th>
+              <th>Formula</th>
+              <th className="text-left">Computed Value</th>
+              <th className="w-32">IEC Ref.</th>
+            </tr>
+          </thead>
+          <tbody>
+            {traceRows.map((row) => (
+              <tr key={row.num}>
+                <td className="text-center text-gray-700">{row.num}</td>
+                <td className="font-medium">{row.param}</td>
+                <td className="font-mono text-[10px]" dangerouslySetInnerHTML={{ __html: row.html }} />
+                <td className="text-left font-mono font-bold">{row.val}</td>
+                <td className="text-[10px] text-gray-700">{row.ref}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="mt-8 text-[11px] italic">
+          <p className="font-bold mb-1">Applicable Clauses & Standards:</p>
+          {results.clauseReferences.map((c, i) => (
+            <div key={i} className="flex items-center gap-2 mb-0.5 text-gray-700">
+              <span>{c.label}</span>
+              <VerificationBadge tag={c.verification} applicable={true} />
+              <span className="text-[10px] text-muted-foreground">({formatClauseDisplay(c.refId)})</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-12 text-center text-[10px] text-gray-500 border-t border-gray-300 pt-3">
+          Generated by GridIntel Pro — Fault Analysis Module v2.0, IEC 60909-0
         </div>
       </div>
     </div>
@@ -809,11 +1053,12 @@ function SagTensionReportTemplate({ inputs, results, onBack }: { inputs: SagTens
         }
       `}} />
 
-      <div id="report-print-area" className="w-full bg-white text-black min-h-screen font-sans text-[13px] leading-tight print:block hidden p-4">
+      <div id="report-print-area" className="w-full bg-white text-black min-h-screen font-sans text-[13px] leading-tight print:block p-4">
         <div className="flex justify-between items-end border-b-2 border-black pb-2 mb-6">
           <div>
             <h1 className="text-2xl font-black uppercase tracking-tight m-0 p-0 leading-none">Sag-Tension Profile Report</h1>
             <p className="text-[11px] font-bold mt-1 text-gray-600">Calculated as per IS 802 / IEC 60826</p>
+            <p className="text-[10px] italic mt-1 text-gray-600">Note: Wind load parameters shown per IS 802 methodology — verification status pending, see badges in the detailed trace view.</p>
           </div>
           <div className="text-right text-[10px] uppercase font-bold text-gray-500">
             GridIntel Substation Design <br/> {new Date().toLocaleDateString()}

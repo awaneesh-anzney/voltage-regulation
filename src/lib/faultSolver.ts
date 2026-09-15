@@ -1,3 +1,12 @@
+import { FAULT_SOLVER_REGISTRY, FaultSolverClauseId } from "./registries/faultSolverRegistry";
+import { VerificationTag } from "./types/verification";
+
+export interface ClauseReference {
+  refId: FaultSolverClauseId;
+  label: string;           
+  verification: VerificationTag;
+}
+
 export interface FaultInput {
   voltageKv: number;          // V_n (kV)
   sourceMva: number;          // S_sc'' (MVA)
@@ -16,7 +25,19 @@ export interface FaultInput {
   includeTransformer?: boolean;
   transformerMva?: number;
   transformerReactancePct?: number;
+  transformerVectorGroup?: "Dyn" | "YNyn" | "Yy" | "YNy";
+  faultType?: "far-from-generator" | "near-to-generator";
+  generatorRatedCurrentKa?: number;
+  breakerDelayS?: number;
   tk1?: number; // fault duration (seconds)
+
+  // Motor contribution fields
+  motorContribution?: {
+    includeMotor: boolean;
+    totalMotorMva: number;        // Aggregate motor MVA at fault bus
+    motorXdPercent: number;       // Subtransient reactance Xd'' (typically 16.7% - 25%)
+    motorXRRatio: number;         // X/R ratio (IEC 60909 default range — verify against nameplate if available)
+  };
 }
 
 export interface FaultResults {
@@ -66,6 +87,7 @@ export interface FaultResults {
     zSourceZero: { r: number; x: number; mag: number };
     zTransPos?: { r: number; x: number; mag: number };
     zTransZero?: { r: number; x: number; mag: number };
+    zMotorPos?: { r: number; x: number; mag: number };
     zLinePos: { r: number; x: number; mag: number };
     zLineZero: { r: number; x: number; mag: number };
     zTotalPos: { r: number; x: number; mag: number };
@@ -84,11 +106,21 @@ export interface FaultResults {
     mLLG: number;
     tk1: number;
     includeTransformer: boolean;
+    transformerMva?: number;
+    transformerReactancePct?: number;
     faultLocationKm: number;
+    transformerVectorGroup?: string;
+    faultType?: string;
+    generatorRatedCurrentKa?: number;
+    breakerDelayS?: number;
+    includeMotor: boolean;
+    motorMva?: number;
+    motorXdPercent?: number;
+    motorXRRatio?: number;
   };
 
   // Clause references
-  clauses: string[];
+  clauseReferences: ClauseReference[];
 }
 
 export function calculateFaults(input: FaultInput): FaultResults {
@@ -108,6 +140,10 @@ export function calculateFaults(input: FaultInput): FaultResults {
     includeTransformer = false,
     transformerMva = 100,
     transformerReactancePct = 12.5,
+    transformerVectorGroup = "Dyn",
+    faultType = "far-from-generator",
+    generatorRatedCurrentKa = 2.0,
+    breakerDelayS = 0.05,
     tk1 = 1.0,
   } = input;
 
@@ -141,6 +177,17 @@ export function calculateFaults(input: FaultInput): FaultResults {
     rTrans = 0.05 * xTrans;
   }
 
+  // Zero-sequence transformer impedance (Fix #1)
+  let rTrans0 = rTrans;
+  let xTrans0 = xTrans;
+  if (includeTransformer) {
+    if (transformerVectorGroup === "Yy" || transformerVectorGroup === "YNy") {
+      // Ungrounded secondary blocks zero-sequence path completely
+      rTrans0 = 1e6;
+      xTrans0 = 1e6;
+    }
+  }
+
   // 3. Line Impedances Z_L at faultLocationKm
   const actualLength = Math.max(0, Math.min(faultLocationKm, lineLengthKm));
   const rLine1 = lineRPerKm * actualLength;
@@ -151,15 +198,55 @@ export function calculateFaults(input: FaultInput): FaultResults {
   const xLine0 = xLine1 * zeroSeqXMultiplier;
   const zLine0Mag = Math.sqrt(rLine0 * rLine0 + xLine0 * xLine0);
 
-  // 4. Total Sequence Impedances at Fault Bus
-  // Z1 = Z2 = Z_source + Z_transformer + Z_line
-  const rPositive = rSource + rTrans + rLine1;
-  const xPositive = xSource + xTrans + xLine1;
+  // 4. Motor Impedance Z_M (if included)
+  // Motor acts as a parallel current source at the fault bus — contributes to positive and negative sequence only.
+  // Zero-sequence contribution is excluded (motors are typically delta-connected or ungrounded star).
+  const mc = input.motorContribution;
+  const includeMotor = mc?.includeMotor ?? false;
+  const motorMva = mc?.totalMotorMva ?? 10;
+  const motorXdPercent = mc?.motorXdPercent ?? 20;
+  const motorXRRatio = mc?.motorXRRatio ?? 10;
+
+  let rMotor = 0;
+  let xMotor = 0;
+  let zMotorMag = 0;
+  if (includeMotor && motorMva > 0) {
+    // SIMPLIFICATION: IEC 60909-0 impedance correction factor K_M assumed = 1.0.
+    // Real K_M = 0.95·c_max / (1 + x_d''·sin(φ_rN)) — TODO: verify exact formula before production use.
+    const kM = 1.0;
+    zMotorMag = kM * (motorXdPercent / 100) * Math.pow(voltageKv, 2) / motorMva;
+    xMotor = zMotorMag / Math.sqrt(1 + Math.pow(1 / motorXRRatio, 2));
+    rMotor = xMotor / motorXRRatio;
+  }
+
+  // 5. Total Sequence Impedances at Fault Bus
+  // Z_series = Z_source + Z_transformer + Z_line (series path from grid)
+  const rSeries = rSource + rTrans + rLine1;
+  const xSeries = xSource + xTrans + xLine1;
+
+  // If motor is included, Z1_total = Z_series || Z_motor (parallel combination)
+  // If motor is not included, Z1_total = Z_series
+  let rPositive: number;
+  let xPositive: number;
+  if (includeMotor && zMotorMag > 0) {
+    const zSeriesVec: Complex = { r: rSeries, x: xSeries };
+    const zMotorVec: Complex = { r: rMotor, x: xMotor };
+    const zParallel = div(mul(zSeriesVec, zMotorVec), add(zSeriesVec, zMotorVec));
+    rPositive = zParallel.r;
+    xPositive = zParallel.x;
+  } else {
+    rPositive = rSeries;
+    xPositive = xSeries;
+  }
   const zPositiveMag = Math.sqrt(rPositive * rPositive + xPositive * xPositive);
 
-  // Z0 = Z_source0 + Z_transformer0 + Z_line0 (assume Transformer Z0 = Z1 for Delta-Star grounded)
-  const rZero = rSource0 + rTrans + rLine0;
-  const xZero = xSource0 + xTrans + xLine0;
+  // Z0 = Z_source0 + Z_transformer0 + Z_line0 (Fix #2)
+  // Note: For Dyn, delta primary blocks source zero-sequence transfer.
+  // For Yy and YNy, the secondary side ungrounded star has no ground reference at the fault point (making Z_trans0 infinite).
+  // Motor is excluded from zero-sequence (delta/ungrounded star — no zero-seq return path).
+  const isSource0Blocked = includeTransformer && (transformerVectorGroup === "Dyn" || transformerVectorGroup === "Yy" || transformerVectorGroup === "YNy");
+  const rZero = (isSource0Blocked ? 0 : rSource0) + rTrans0 + rLine0;
+  const xZero = (isSource0Blocked ? 0 : xSource0) + xTrans0 + xLine0;
   const zZeroMag = Math.sqrt(rZero * rZero + xZero * xZero);
 
   // 5. Short-Circuit Current Calculations (IEC 60909)
@@ -179,25 +266,29 @@ export function calculateFaults(input: FaultInput): FaultResults {
   const mvaLineToLine = Math.sqrt(3) * voltageKv * iLineToLine;
 
   // D. Line-to-Line-to-Ground Fault Current (I_k2g'')
-  const r20 = rPositive + rZero;
-  const x20 = xPositive + xZero;
-  const z20MagSq = r20 * r20 + x20 * x20;
-  
-  // Z2 * Z0 = (rPositive + j*xPositive)*(rZero + j*xZero)
-  const rProd = rPositive * rZero - xPositive * xZero;
-  const xProd = rPositive * xZero + xPositive * rZero;
+  // Symmetrical components vector calculations for phase current in faulted phases (L2/L3)
+  const vRef: Complex = { r: (cFactor * voltageKv) / Math.sqrt(3), x: 0 };
+  const z1: Complex = { r: rPositive, x: xPositive };
+  const z0: Complex = { r: rZero, x: xZero };
+  const a: Complex = { r: -0.5, x: 0.8660254 };
+  const a2: Complex = { r: -0.5, x: -0.8660254 };
 
-  // (Z2 * Z0) / (Z2 + Z0)
-  const rParallel = z20MagSq > 1e-9 ? (rProd * r20 + xProd * x20) / z20MagSq : 0;
-  const xParallel = z20MagSq > 1e-9 ? (xProd * r20 - rProd * x20) / z20MagSq : 0;
+  const z1PlusZ0 = add(z1, z0);
+  const z1TimesZ0 = mul(z1, z0);
+  const zp = div(z1TimesZ0, z1PlusZ0); // Z1 || Z0
+  const zTotalLLGVec = add(z1, zp); // Z1 + (Z1 || Z0)
 
-  // Total Z for phase current calculation
-  const rTotalLLG = rPositive + rParallel;
-  const xTotalLLG = xPositive + xParallel;
-  const zTotalLLG = Math.sqrt(rTotalLLG * rTotalLLG + xTotalLLG * xTotalLLG);
+  const i1 = div(vRef, zTotalLLGVec); // Positive sequence current vector
+  const i0 = div(mul({ r: -i1.r, x: -i1.x }, z1), z1PlusZ0); // Zero sequence current vector
+  const i2 = div(mul({ r: -i1.r, x: -i1.x }, z0), z1PlusZ0); // Negative sequence current vector
 
-  const iLineToLineToGround = (cFactor * voltageKv) / (Math.sqrt(3) * zTotalLLG);
+  const iL2 = add(add(i0, mul(a2, i1)), mul(a, i2)); // Phase L2 current vector
+  const iLineToLineToGround = mag(iL2);
   const mvaLineToLineToGround = Math.sqrt(3) * voltageKv * iLineToLineToGround;
+
+  // Store variables for trace mapping
+  const rTotalLLG = zTotalLLGVec.r;
+  const xTotalLLG = zTotalLLGVec.x;
 
   // 6. Dynamic Factors, Peaks, and Thermal Equivalents (IEC 60909)
   const calcFactors = (r: number, x: number, ik: number) => {
@@ -205,14 +296,24 @@ export function calculateFaults(input: FaultInput): FaultResults {
     const kappa = 1.02 + 0.98 * Math.exp(-3 / xr);
     const ip = kappa * Math.sqrt(2) * ik;
     
-    // Symmetrical breaking current (for far-from-generator short circuits)
-    const ib = ik;
+    // Symmetrical breaking current (for far-from-generator vs near-to-generator short circuits) (Fix #4)
+    // NOTE: Motor contribution decay factor q is not yet implemented.
+    // Motor current is conservatively treated as non-decaying (Ib_motor = Ik_motor), which gives a safe overestimate.
+    // TODO: Implement IEC 60909 q-factor for motor breaking current decay when verified.
+    const ib = faultType === "near-to-generator"
+      ? ik * calculateMu(ik / Math.max(generatorRatedCurrentKa, 0.001), breakerDelayS)
+      : ik;
 
     // Thermal equivalent calculation:
-    // tau = X / (2 * pi * f * R)
     const tau = x / (2 * Math.PI * f * Math.max(r, 0.0001));
-    // m = (tau / tk1) * (1 - e^(-2 * tk1 / tau))
-    const m = tk1 > 0 ? (tau / tk1) * (1 - Math.exp(-2 * tk1 / tau)) : 0;
+    
+    // IEC 60909-0 Clause 4.5 Standard Formula using kappa instead of tau approximation (Fix #3)
+    let m = 0;
+    if (tk1 > 0 && kappa > 1.0001) {
+      const lnKappaMinus1 = Math.log(kappa - 1);
+      const denom = 2 * f * tk1 * lnKappaMinus1;
+      m = (Math.exp(4 * f * tk1 * lnKappaMinus1) - 1) / denom;
+    }
     const ith = ik * Math.sqrt(1 + m);
 
     return { xr, kappa, ip, ib, tau, m, ith };
@@ -264,6 +365,7 @@ export function calculateFaults(input: FaultInput): FaultResults {
       zSourceZero: { r: round(rSource0, 4), x: round(xSource0, 4), mag: round(zSource0Mag, 4) },
       zTransPos: includeTransformer ? { r: round(rTrans, 4), x: round(xTrans, 4), mag: round(zTransMag, 4) } : undefined,
       zTransZero: includeTransformer ? { r: round(rTrans, 4), x: round(xTrans, 4), mag: round(zTransMag, 4) } : undefined,
+      zMotorPos: includeMotor ? { r: round(rMotor, 4), x: round(xMotor, 4), mag: round(zMotorMag, 4) } : undefined,
       zLinePos: { r: round(rLine1, 4), x: round(xLine1, 4), mag: round(zLine1Mag, 4) },
       zLineZero: { r: round(rLine0, 4), x: round(xLine0, 4), mag: round(zLine0Mag, 4) },
       zTotalPos: { r: round(rPositive, 4), x: round(xPositive, 4), mag: round(zPositiveMag, 4) },
@@ -282,19 +384,73 @@ export function calculateFaults(input: FaultInput): FaultResults {
       mLLG: round(fLLG.m, 4),
       tk1,
       includeTransformer,
-      faultLocationKm
+      transformerMva: includeTransformer ? transformerMva : undefined,
+      transformerReactancePct: includeTransformer ? transformerReactancePct : undefined,
+      faultLocationKm,
+      transformerVectorGroup,
+      faultType,
+      generatorRatedCurrentKa,
+      breakerDelayS,
+      includeMotor,
+      motorMva: includeMotor ? motorMva : undefined,
+      motorXdPercent: includeMotor ? motorXdPercent : undefined,
+      motorXRRatio: includeMotor ? motorXRRatio : undefined
     },
 
-    clauses: [
-      "IEC 60909-0 Clause 3.2: Symmetrical three-phase short-circuit calculations (initial, peak, breaking, thermal)",
-      "IEC 60909-0 Clause 3.5: Line-to-earth (L-G) short-circuit current calculation",
-      "IEC 60909-0 Clause 3.6: Line-to-line (L-L) short-circuit calculations",
-      "IS 2026 Clause 6.11: Short circuit withstand capability guidelines for transformers",
-      "IS 5613 Clause 4.2: Tower loading and structural clearance margins under fault conditions"
+    clauseReferences: [
+      { refId: FAULT_SOLVER_REGISTRY.threePhaseSC, label: "3-Phase Short-Circuit (initial, peak, breaking, thermal)", verification: "NOT_YET_ASSESSED" },
+      { refId: FAULT_SOLVER_REGISTRY.lineToEarthSC, label: "Line-to-Earth Short-Circuit", verification: "NOT_YET_ASSESSED" },
+      { refId: FAULT_SOLVER_REGISTRY.lineToLineSC, label: "Line-to-Line Short-Circuit", verification: "NOT_YET_ASSESSED" },
+      ...(includeMotor ? [{ refId: FAULT_SOLVER_REGISTRY.motorContribution, label: "Asynchronous Motor Contribution", verification: "NOT_YET_ASSESSED" as VerificationTag }] : []),
+      { refId: FAULT_SOLVER_REGISTRY.transformerWithstand, label: "Transformer Withstand Guideline", verification: "NOT_YET_ASSESSED" },
+      { refId: FAULT_SOLVER_REGISTRY.towerClearance, label: "Tower Loading Clearance Margin", verification: "NOT_YET_ASSESSED" },
     ]
   };
 }
 
 function round(val: number, decimals: number): number {
   return parseFloat(val.toFixed(decimals));
+}
+
+// ─── Complex Number Helper Types & Functions ───
+interface Complex { r: number; x: number; }
+
+const add = (c1: Complex, c2: Complex): Complex => ({ r: c1.r + c2.r, x: c1.x + c2.x });
+const sub = (c1: Complex, c2: Complex): Complex => ({ r: c1.r - c2.r, x: c1.x - c2.x });
+const mul = (c1: Complex, c2: Complex): Complex => ({
+  r: c1.r * c2.r - c1.x * c2.x,
+  x: c1.r * c2.x + c1.x * c2.r
+});
+const div = (c1: Complex, c2: Complex): Complex => {
+  const den = c2.r * c2.r + c2.x * c2.x;
+  if (den === 0) return { r: 0, x: 0 };
+  return {
+    r: (c1.r * c2.r + c1.x * c2.x) / den,
+    x: (c1.x * c2.r - c1.r * c2.x) / den
+  };
+};
+const mag = (c: Complex): number => Math.sqrt(c.r * c.r + c.x * c.x);
+
+// ─── Symmetrical Breaking Current mu Factor Calculation ───
+function calculateMu(ikOverIr: number, tmin: number): number {
+  const ratio = Math.max(0, ikOverIr);
+  const mu02 = 0.84 + 0.26 * Math.exp(-0.26 * ratio);
+  const mu05 = 0.71 + 0.51 * Math.exp(-0.30 * ratio);
+  const mu10 = 0.62 + 0.72 * Math.exp(-0.32 * ratio);
+  const mu25 = 0.56 + 0.94 * Math.exp(-0.38 * ratio);
+
+  let muVal = 1.0;
+  if (tmin <= 0.02) muVal = mu02;
+  else if (tmin >= 0.25) muVal = mu25;
+  else if (tmin < 0.05) {
+    const frac = (tmin - 0.02) / (0.05 - 0.02);
+    muVal = mu02 + frac * (mu05 - mu02);
+  } else if (tmin < 0.10) {
+    const frac = (tmin - 0.05) / (0.10 - 0.05);
+    muVal = mu05 + frac * (mu10 - mu05);
+  } else {
+    const frac = (tmin - 0.10) / (0.25 - 0.10);
+    muVal = mu10 + frac * (mu25 - mu10);
+  }
+  return Math.min(1.0, muVal);
 }

@@ -17,7 +17,19 @@ export function WhatIfPanel({ baseInputs, baseResults }: WhatIfPanelProps) {
   const [nc, setNc] = useState(baseInputs.nc);
 
   const whatIfInputs: SCInputs = { ...baseInputs, ik3, lspan, aph, nc };
-  const whatIfResults = useMemo(() => computeSCForces(whatIfInputs), [whatIfInputs]);
+  const { whatIfResults, validationErrors, solverError } = useMemo(() => {
+    try {
+      return { whatIfResults: computeSCForces(whatIfInputs), validationErrors: [], solverError: null };
+    } catch (err: any) {
+      if (err.name === "SCInputValidationError") {
+        return { whatIfResults: null, validationErrors: err.errors, solverError: null };
+      }
+      if (err.name === "SCSolverError") {
+        return { whatIfResults: null, validationErrors: [], solverError: err.message };
+      }
+      return { whatIfResults: null, validationErrors: [], solverError: "Unknown error" };
+    }
+  }, [whatIfInputs]);
 
   return (
     <div className="space-y-4">
@@ -97,34 +109,49 @@ export function WhatIfPanel({ baseInputs, baseResults }: WhatIfPanelProps) {
         <div className="bg-card border border-border rounded-xl p-5 flex flex-col">
           <h3 className="text-[13px] font-semibold text-foreground uppercase tracking-wider mb-4">Live Results Comparison</h3>
           
-          <div className="space-y-4 flex-1">
-            <ResultRow label="Max Tensile Force (Ftd)" base={baseResults.Ftd} whatIf={whatIfResults.Ftd} unit="kN" />
-            <ResultRow label="Drop Force (Ffd)" base={baseResults.Ffd} whatIf={whatIfResults.Ffd} unit="kN" />
-            <ResultRow 
-              label="Pinch Force (Fpi)" 
-              base={baseResults.Fpi} 
-              whatIf={whatIfResults.Fpi} 
-              unit="kN" 
-            />
-            
-            <div className="pt-4 border-t border-border" />
-            <ResultRow label="Governing Force" base={baseResults.Fmax} whatIf={whatIfResults.Fmax} unit="kN" highlight />
-            
-            <div className="pt-4 border-t border-border" />
-            <div className="flex justify-between items-center text-[13px]">
-              <span className="text-muted-foreground">Clearance Status</span>
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col items-end">
-                  <span className="text-[10px] text-slate-500">Base</span>
-                  <StatusBadge ok={baseResults.clCheck} />
-                </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-[10px] text-slate-500">What-If</span>
-                  <StatusBadge ok={whatIfResults.clCheck} />
+          {solverError ? (
+            <div className="bg-orange-500/10 border border-orange-500/20 text-orange-400 px-4 py-3 rounded text-sm mb-4">
+              <strong>Solver Failed:</strong> {solverError}
+            </div>
+          ) : validationErrors.length > 0 ? (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded text-sm mb-4">
+              <strong>Invalid Simulation Range:</strong>
+              <ul className="list-disc pl-5 mt-1">
+                {validationErrors.map((e: any, i: number) => (
+                  <li key={i}>[{e.field}] {e.message}</li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <div className="space-y-4 flex-1">
+              <ResultRow label="Max Tensile Force (Ftd)" base={baseResults.Ftd} whatIf={whatIfResults!.Ftd} unit="kN" />
+              <ResultRow label="Drop Force (Ffd)" base={baseResults.Ffd} whatIf={whatIfResults!.Ffd} unit="kN" />
+              <ResultRow 
+                label="Pinch Force (Fpi)" 
+                base={baseResults.Fpi} 
+                whatIf={whatIfResults!.Fpi} 
+                unit="kN" 
+              />
+              
+              <div className="pt-4 border-t border-border" />
+              <ResultRow label="Governing Force" base={baseResults.Fmax} whatIf={whatIfResults!.Fmax} unit="kN" highlight />
+              
+              <div className="pt-4 border-t border-border" />
+              <div className="flex justify-between items-center text-[13px]">
+                <span className="text-muted-foreground">Clearance Status</span>
+                <div className="flex items-center gap-4">
+                  <div className="flex flex-col items-end">
+                    <span className="text-[10px] text-slate-500">Base</span>
+                    <StatusBadge ok={baseResults.clCheck} />
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-[10px] text-slate-500">What-If</span>
+                    <StatusBadge ok={whatIfResults!.clCheck} />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

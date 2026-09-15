@@ -10,8 +10,11 @@ import { computeSCForces, getDefaultInputs } from "@/lib/scForcesEngine";
 import type { SCInputs, SCResults } from "@/lib/scForcesEngine";
 import { CONDUCTOR_LIBRARY, getConductorTypes, getConductorsByType } from "@/lib/conductorLibrary";
 import type { ConductorSpec } from "@/lib/conductorLibrary";
-import { SC_FORCES_TRUST } from "@/lib/trustSystem";
-import { TrustIndicator, IECRef } from "@/components/v2/TrustWidgets";
+import { buildEngineTrace } from "@/lib/scForcesEngine";
+import { VerificationBadge } from "@/components/dashboard/sc-forces/VerificationBadge";
+import { IECRef } from "@/components/v2/TrustWidgets";
+import { CLAUSE_REGISTRY } from "@/lib/clauseRegistry";
+import type { ClauseId } from "@/lib/clauseRegistry";
 import { autoFillSCForcesFields } from "@/lib/ceaClearances";
 import { ResultsDashboard } from "@/components/dashboard/sc-forces/ResultsDashboard";
 import { EquationTrace } from "@/components/dashboard/sc-forces/EquationTrace";
@@ -23,7 +26,7 @@ import { ReportExport } from "@/components/dashboard/sc-forces/ReportExport";
 function InputField({ label, value, unit, onChange, linked, linkSource, disabled, iecRef }: {
   label: string; value: number | string; unit?: string;
   onChange: (v: number | string) => void; linked?: boolean; linkSource?: string; disabled?: boolean;
-  iecRef?: { clause: string; desc: string };
+  iecRef?: { clause: ClauseId; desc: string };
 }) {
   const isNumber = typeof value === 'number';
   const [localValue, setLocalValue] = useState<string>(String(value));
@@ -100,7 +103,7 @@ function InputField({ label, value, unit, onChange, linked, linkSource, disabled
 function SelectField({ label, value, options, unit, onChange, linked, linkSource, disabled, iecRef }: {
   label: string; value: string; options: { value: string; label: string }[]; unit?: string;
   onChange: (v: string) => void; linked?: boolean; linkSource?: string; disabled?: boolean;
-  iecRef?: { clause: string; desc: string };
+  iecRef?: { clause: ClauseId; desc: string };
 }) {
   return (
     <div className="space-y-1">
@@ -192,7 +195,7 @@ export function SCForcesInspector({ inputs, onUpdate, onUpdateInputs, onCalculat
         <Section title="System" accent="blue" defaultOpen>
           <InputField label="Short-Circuit Current I_k3" value={inputs.ik3} unit="A"
             onChange={(v) => onUpdate("ik3", v as number)} linked={hasLinkedFault} linkSource="Fault Analysis"
-            iecRef={{ clause: "IEC 60865-1 Cl. 4.2", desc: "Initial symmetrical short-circuit current" }} />
+            iecRef={{ clause: CLAUSE_REGISTRY.ik3, desc: "Initial symmetrical short-circuit current" }} />
           <InputField label="X/R Ratio" value={inputs.xr} unit=""
             onChange={(v) => onUpdate("xr", v as number)} linked={hasLinkedFault} linkSource="Fault Analysis" />
           <SelectField label="System Voltage" value={String(inputs.vsys)} unit="V"
@@ -219,7 +222,7 @@ export function SCForcesInspector({ inputs, onUpdate, onUpdateInputs, onCalculat
             onChange={(v) => onUpdate("freq", parseFloat(v))} />
           <InputField label="Phase Spacing a_ph" value={inputs.aph} unit="m" onChange={(v) => onUpdate("aph", v as number)} />
           <InputField label="Clearance c_l,ph" value={inputs.clph} unit="m" onChange={(v) => onUpdate("clph", v as number)}
-            iecRef={{ clause: "CEA Schedule-2", desc: "Phase-to-phase minimum safety clearance" }} />
+            iecRef={{ clause: CLAUSE_REGISTRY.ceaClearance, desc: "Phase-to-phase minimum safety clearance" }} />
         </Section>
 
         <Section title="Conductor" accent="teal">
@@ -290,16 +293,16 @@ export function SCForcesInspector({ inputs, onUpdate, onUpdateInputs, onCalculat
 
         <Section title="Span & Structure" accent="amber">
           <InputField label="Span Length l" value={inputs.lspan} unit="m" onChange={(v) => onUpdate("lspan", v as number)}
-            iecRef={{ clause: "IEC 60865-1 Cl. 7.1", desc: "Span length between supports" }} />
+            iecRef={{ clause: CLAUSE_REGISTRY.lspan, desc: "Span length between supports" }} />
           <InputField label="Insulator Length l_i" value={inputs.li} unit="m" onChange={(v) => onUpdate("li", v as number)} />
           <InputField label="Girder Width D_g" value={inputs.dg} unit="m" onChange={(v) => onUpdate("dg", v as number)} />
           <InputField label="Stringing Height H" value={inputs.H} unit="m" onChange={(v) => onUpdate("H", v as number)} />
           <InputField label="Static Tension F_st" value={inputs.fst_kg} unit="kg"
             onChange={(v) => onUpdate("fst_kg", v as number)} linked={hasLinkedSag} linkSource="Sag-Tension"
-            iecRef={{ clause: "IEC 60865-1 Cl. 7.2", desc: "Static tensile force in the conductor" }} />
+            iecRef={{ clause: CLAUSE_REGISTRY.Fst, desc: "Static tensile force in the conductor" }} />
           <InputField label="SC Duration T_k1" value={inputs.tk1} unit="s"
             onChange={(v) => onUpdate("tk1", v as number)}
-            iecRef={{ clause: "IEC 60865-1 Cl. 7.3.2", desc: "Duration of the short-circuit current" }} />
+            iecRef={{ clause: CLAUSE_REGISTRY.tk1, desc: "Duration of the short-circuit current" }} />
         </Section>
 
         <Section title="Spacer & Dropper" accent="purple" defaultOpen={false}>
@@ -380,7 +383,9 @@ export function SCForcesCanvas({ inputs, results, onViewReport }: {
   onViewReport?: () => void;
 }) {
   const [tab, setTab] = useState<CanvasTab>("results");
-  if (!results) return null;
+  const trace = useMemo(() => results ? buildEngineTrace(inputs, results) : null, [inputs, results]);
+  
+  if (!results || !trace) return null;
 
   return (
     <div className="p-6 space-y-5 max-w-7xl mx-auto pb-20">
@@ -423,11 +428,19 @@ export function SCForcesCanvas({ inputs, results, onViewReport }: {
           ].map(item => (
             <div key={item.key} className="bg-card rounded-xl p-3 border border-white/[0.04]">
               <div className="text-[10px] text-muted-foreground/80 uppercase tracking-wider font-bold mb-1">{item.label}</div>
-              <TrustIndicator
-                badge={SC_FORCES_TRUST[item.key]}
-                value={item.val}
-                unit={item.unit}
-              />
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-foreground">
+                  {item.val}{item.unit && <span className="text-muted-foreground ml-1">{item.unit}</span>}
+                </span>
+                {item.key === "Fmax" && <VerificationBadge tag={trace.governingForce.verification} applicable={true} />}
+                {(item.key === "amin" || item.key === "clCheck") && <VerificationBadge tag={trace.parameters.clearance.verification} applicable={true} />}
+                {item.key !== "Fmax" && item.key !== "amin" && item.key !== "clCheck" && item.key !== "psi" && item.key !== "CD" && (
+                  <VerificationBadge 
+                    tag={trace.parameters[item.key as keyof typeof trace.parameters]?.verification ?? "VERIFIED"} 
+                    applicable={trace.parameters[item.key as keyof typeof trace.parameters]?.applicable ?? true} 
+                  />
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -462,7 +475,7 @@ export function SCForcesCanvas({ inputs, results, onViewReport }: {
 
       {/* Tab Content */}
       {tab === "results" && <ResultsDashboard inputs={inputs} results={results} />}
-      {tab === "trace" && <EquationTrace results={results} />}
+      {tab === "trace" && <EquationTrace inputs={inputs} results={results} />}
       {tab === "visual" && <GraphsPanel inputs={inputs} results={results} />}
       {tab === "whatif" && <WhatIfPanel baseInputs={inputs} baseResults={results} />}
     </div>

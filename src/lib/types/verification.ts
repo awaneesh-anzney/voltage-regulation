@@ -1,6 +1,6 @@
 import { ClauseId } from "../clauseRegistry";
 
-export type VerificationTag = "VERIFIED" | "APPROXIMATE" | "UNVERIFIED_CANDIDATE";
+export type VerificationTag = "VERIFIED" | "APPROXIMATE" | "UNVERIFIED_CANDIDATE" | "NOT_YET_ASSESSED";
 
 export interface TraceableParameter {
   name: string;
@@ -15,7 +15,7 @@ export interface TraceableParameter {
 }
 
 export type SCTraceKey =
-  | "k" | "Fprime" | "r" | "deltam_deg" | "Ftd" | "Ffd"
+  | "k" | "Fprime" | "r" | "deltam_deg" | "Ftd" | "Ffd" | "Ffd_ocrRecon" | "Ffd_aiCandidate"
   | "v2" | "v3" | "eta" | "Fpi" | "clearance";
 
 export interface GoverningForce {

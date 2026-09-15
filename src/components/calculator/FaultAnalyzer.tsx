@@ -342,9 +342,9 @@ export function FaultAnalyzer({ onFeedToSCForces }: FaultAnalyzerProps) {
                 Calculations are checked against standard utility audit compliance checklists:
               </p>
               <div className="space-y-2">
-                {results.clauses.map((clause, idx) => (
+                {results.clauseReferences.map((clause, idx) => (
                   <div key={idx} className="p-2.5 bg-slate-950/40 rounded border border-slate-850/80 leading-relaxed text-slate-300">
-                    {clause}
+                    {clause.label}
                   </div>
                 ))}
               </div>
