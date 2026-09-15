@@ -31,12 +31,12 @@ function KpiCard({ label, value, sub, status, highlight, badgeTag }: {
       <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent ${
         status === 'danger' ? 'via-red-500' : status === 'warn' ? 'via-amber-500' : status === 'ok' ? 'via-emerald-500' : 'via-blue-500'
       } to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
-      <div className="text-[11px] font-medium text-slate-500 mb-1.5 flex justify-between items-start gap-2">
+      <div className="text-[11px] font-medium text-slate-500 mb-1.5 flex flex-wrap justify-between items-start gap-2">
         <span>{label}</span>
         {badgeTag && <VerificationBadge tag={badgeTag} />}
       </div>
-      <div className={`font-mono text-[22px] font-semibold ${color}`}>{value}</div>
-      <div className="text-[10px] text-slate-600 mt-1 font-mono">{sub}</div>
+      <div className={`font-mono text-[22px] font-semibold ${color} whitespace-nowrap`}>{value}</div>
+      <div className="text-[10px] text-slate-600 mt-1 font-mono truncate">{sub}</div>
     </div>
   );
 }
@@ -97,7 +97,7 @@ export function ResultsDashboard({ inputs, results }: ResultsDashboardProps) {
       </div>
 
       {/* 7 KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3">
         <KpiCard
           label="Tensile Force (Ftd)"
           value={`${(Ftd / 1000).toFixed(1)} kN`}

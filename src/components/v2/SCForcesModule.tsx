@@ -413,7 +413,7 @@ export function SCForcesCanvas({ inputs, results, onViewReport }: {
       {/* Trust Summary Panel */}
       <div className="bg-card border border-border rounded-2xl p-4">
         <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.12em] mb-3">Key Results — Trust Indicators</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
           {[
             { key: "Fmax", label: "F_max", val: (results.Fmax / 1000).toFixed(2), unit: "kN" },
             { key: "Ftd", label: "F_td", val: (results.Ftd / 1000).toFixed(2), unit: "kN" },
@@ -428,7 +428,7 @@ export function SCForcesCanvas({ inputs, results, onViewReport }: {
           ].map(item => (
             <div key={item.key} className="bg-card rounded-xl p-3 border border-white/[0.04]">
               <div className="text-[10px] text-muted-foreground/80 uppercase tracking-wider font-bold mb-1">{item.label}</div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 mt-1">
                 <span className="font-mono text-foreground">
                   {item.val}{item.unit && <span className="text-muted-foreground ml-1">{item.unit}</span>}
                 </span>

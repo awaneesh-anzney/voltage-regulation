@@ -37,7 +37,7 @@ export function VerificationBadge({ tag, applicable = true }: { tag: Verificatio
   const { label, classes, Icon } = BADGE_CONFIG[tag];
   return (
     <div title={label} aria-label={label}
-      className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold border ${classes}`}>
+      className={`flex items-center shrink-0 whitespace-nowrap gap-1 px-2 py-0.5 rounded text-[10px] font-semibold border ${classes}`}>
       <Icon className="w-3 h-3" />
       {label}
     </div>

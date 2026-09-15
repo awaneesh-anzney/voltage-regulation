@@ -365,8 +365,17 @@ export function computeV2AnnexA7(v1: number, kappa: number, f: number): { v2: nu
 
   const residual = (fTpi: number) => fTpi * Math.sqrt(Math.max(v2_of_fTpi(fTpi), 0.0)) - v1;
 
-  let lo = 1e-4, hi = 50.0;
-  let rLo = residual(lo), rHi = residual(hi);
+  let lo = 1e-4;
+  let hi = Math.max(50.0, v1 * 2.0);
+  let rLo = residual(lo);
+  let rHi = residual(hi);
+
+  let expandIter = 0;
+  while (rHi < 0 && expandIter < 20) {
+    hi *= 2;
+    rHi = residual(hi);
+    expandIter++;
+  }
   const bracketed = rLo * rHi <= 0;
 
   const maxIter = 200, tol = 1e-9;

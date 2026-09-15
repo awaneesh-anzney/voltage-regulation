@@ -31,7 +31,7 @@ function InputField({ label, value, unit, onChange, step, disabled, iecRef }: {
         {iecRef && (
           <div className="group relative cursor-help flex items-center">
             <BookOpen className="w-3 h-3 text-emerald-500/70" />
-            <div className="absolute right-0 bottom-full mb-1 hidden group-hover:block w-48 p-2 bg-slate-800 border border-slate-700 rounded shadow-xl z-50 text-[10px] leading-tight">
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 hidden group-hover:block w-48 p-2 bg-slate-800 border border-slate-700 rounded shadow-xl z-50 text-[10px] leading-tight">
               <span className="font-bold text-emerald-400 block mb-0.5">{iecRef.clause}</span>
               <span className="text-slate-300">{iecRef.desc}</span>
             </div>
@@ -422,7 +422,7 @@ export function FaultInspector({ inputs, onUpdate, onCalculate }: {
 }
 
 // ─── Real-World Fault KPI Card (Initial, Peak, Breaking, Thermal) ───
-function FaultKPI({ label, ik, ip, ib, ith, mva, color, bgBorder, voltageKv }: {
+function FaultKPI({ label, ik, ip, ib, ith, mva, color, bgBorder, voltageKv, alignTooltip }: {
   label: string;
   ik: number;
   ip: number;
@@ -432,6 +432,7 @@ function FaultKPI({ label, ik, ip, ib, ith, mva, color, bgBorder, voltageKv }: {
   color: string;
   bgBorder: string;
   voltageKv: number;
+  alignTooltip?: "left" | "center" | "right";
 }) {
   // Voltage-class-based sanity ranges (indicative, not IEC-defined)
   const getSanityRange = (kv: number): { min: number; max: number; label: string } => {
@@ -442,23 +443,28 @@ function FaultKPI({ label, ik, ip, ib, ith, mva, color, bgBorder, voltageKv }: {
   const range = getSanityRange(voltageKv);
   const inRange = ik >= range.min * 0.1 && ik <= range.max * 1.5; // generous band
 
+  const tooltipAlignmentClass = 
+    alignTooltip === "left" ? "left-0" : 
+    alignTooltip === "right" ? "right-0" : 
+    "left-1/2 -translate-x-1/2";
+
   return (
-    <div className="bg-card border border-border rounded-xl p-4 hover:border-white/[0.1] transition-all flex flex-col justify-between relative overflow-hidden group">
-      <div className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b ${bgBorder}`} />
+    <div className="bg-card border border-border rounded-xl p-4 hover:border-white/[0.1] transition-all flex flex-col justify-between relative group">
+      <div className={`absolute top-0 left-0 w-1 h-full rounded-l-xl bg-gradient-to-b ${bgBorder}`} />
       <div>
-        <div className="flex items-center justify-between mb-3 pl-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pl-1">
           <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">{label}</div>
           {/* Sanity badge (Fix #4 — honest disclaimer) */}
           {ik > 0 && (
-            <div className="group/badge relative">
-              <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${
+            <div className="group/badge relative shrink-0 ml-auto">
+              <span className={`whitespace-nowrap text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${
                 inRange
                   ? "text-emerald-400 bg-emerald-500/[0.08] border-emerald-500/20"
                   : "text-amber-400 bg-amber-500/[0.08] border-amber-500/20"
               }`}>
                 {inRange ? "✓ ~Typical Range" : "⚠ Review"}
               </span>
-              <div className="absolute right-0 bottom-full mb-1 hidden group-hover/badge:block w-52 p-2 bg-slate-800 border border-slate-700 rounded shadow-xl z-50 text-[10px] leading-tight">
+              <div className={`absolute ${tooltipAlignmentClass} bottom-full mb-1 hidden group-hover/badge:block w-52 p-2 bg-slate-800 border border-slate-700 rounded shadow-xl z-50 text-[10px] leading-tight`}>
                 <span className="font-bold text-slate-200 block mb-0.5">Indicative range, not an IEC-defined threshold.</span>
                 <span className="text-slate-400">{range.label}: {range.min}–{range.max} kA is a rough ballpark for I_k'' at this voltage class.</span>
               </div>
@@ -468,19 +474,19 @@ function FaultKPI({ label, ik, ip, ib, ith, mva, color, bgBorder, voltageKv }: {
         <div className="space-y-2 font-mono text-[12px]">
           <div className="flex items-center justify-between border-b border-white/[0.03] pb-1">
             <span className="text-[10px] text-muted-foreground">Initial (I_k'')</span>
-            <span className={`font-bold ${color}`}>{ik.toFixed(3)} kA</span>
+            <span className={`font-bold ${color} whitespace-nowrap shrink-0 ml-2`}>{ik.toFixed(3)} kA</span>
           </div>
           <div className="flex items-center justify-between border-b border-white/[0.03] pb-1">
             <span className="text-[10px] text-muted-foreground">Peak (i_p)</span>
-            <span className="font-semibold text-foreground">{ip.toFixed(3)} kA</span>
+            <span className="font-semibold text-foreground whitespace-nowrap shrink-0 ml-2">{ip.toFixed(3)} kA</span>
           </div>
           <div className="flex items-center justify-between border-b border-white/[0.03] pb-1">
             <span className="text-[10px] text-muted-foreground">Breaking (I_b)</span>
-            <span className="text-slate-300">{ib.toFixed(3)} kA</span>
+            <span className="text-slate-300 whitespace-nowrap shrink-0 ml-2">{ib.toFixed(3)} kA</span>
           </div>
           <div className="flex items-center justify-between pb-1">
             <span className="text-[10px] text-muted-foreground">Thermal (I_th)</span>
-            <span className="font-semibold text-amber-400">{ith.toFixed(3)} kA</span>
+            <span className="font-semibold text-amber-400 whitespace-nowrap shrink-0 ml-2">{ith.toFixed(3)} kA</span>
           </div>
         </div>
       </div>
@@ -1105,6 +1111,7 @@ export function FaultCanvas({ inputs, results, onFeedToSCForces }: {
                   color="text-emerald-400"
                   bgBorder="from-emerald-500 to-teal-500"
                   voltageKv={inputs.voltageKv}
+                  alignTooltip="left"
                 />
                 <FaultKPI
                   label="Line-to-Ground (SLG)"
@@ -1138,6 +1145,7 @@ export function FaultCanvas({ inputs, results, onFeedToSCForces }: {
                   color="text-purple-400"
                   bgBorder="from-purple-500 to-indigo-500"
                   voltageKv={inputs.voltageKv}
+                  alignTooltip="right"
                 />
               </div>
 
