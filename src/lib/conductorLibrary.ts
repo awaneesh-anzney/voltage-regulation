@@ -15,6 +15,7 @@ export interface ConductorSpec {
   uts: number;              // Ultimate tensile strength (kN)
   thermalExpCoeff: number;  // Coefficient of linear thermal expansion (/°C)
   finalModulus?: number;    // Final modulus after creep (N/mm²), undefined = use E
+  sourceStatus?: 'VERIFIED' | 'UNVERIFIED';
 }
 
 export const CONDUCTOR_LIBRARY: ConductorSpec[] = [
@@ -43,6 +44,13 @@ export const CONDUCTOR_LIBRARY: ConductorSpec[] = [
   // ═══════════════════════════════════════════════
   // AAAC — All Aluminium Alloy Conductor
   // ═══════════════════════════════════════════════
+  {
+    name: 'Greeley', type: 'AAAC',
+    As: 470.0, ds: 28.14,
+    // @verification UNVERIFIED - Below values derived from reference document or assumed, need datasheet confirmation
+    mc: 1.300, E: 56000, sigma_fin: 56e6, cth: 0.27e-18, ratedCurrent: 942, uts: 140.0, thermalExpCoeff: 23.0e-6,
+    sourceStatus: 'UNVERIFIED'
+  },
   {
     name: 'Oak',     type: 'AAAC',
     As: 105.0,  ds: 13.3,  mc: 0.291,

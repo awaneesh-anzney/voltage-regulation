@@ -17,6 +17,7 @@ import { CTSizingInspector, CTSizingCanvas } from "@/components/v2/CTSizingModul
 import { ProtectionInspector, ProtectionCanvas } from "@/components/v2/ProtectionModule";
 import { ContingencyCanvas } from "@/components/v2/ContingencyModule";
 import { ProjectManagerModule } from "@/components/v2/ProjectManagerModule";
+import { ConductorSizingCanvas, ConductorSizingInspector, getDefaultConductorSizingState, ConductorSizingState } from "@/components/v2/ConductorSizingModule";
 import type { ModuleId } from "@/components/v2/Sidebar";
 
 import { computeSCForces, getDefaultInputs } from "@/lib/scForcesEngine";
@@ -37,7 +38,7 @@ import type { ProtectionInputs } from "@/lib/protectionEngine";
 
 import {
   Network, DollarSign, Shield,
-  Sparkles, FileText, History, Construction, ShieldAlert, FolderOpen
+  Sparkles, FileText, History, Construction, ShieldAlert, FolderOpen, Scale
 } from "lucide-react";
 
 import { ProjectState } from "@/lib/workspaceTypes";
@@ -68,13 +69,14 @@ const MODULE_CONFIG: Record<string, { name: string; icon: React.ElementType; des
   contingency: { name: "N-1 Contingency", icon: Shield, description: "System reliability assessment under single outage contingency (N-1 criterion)." },
   protection:  { name: "Protection Coordination", icon: ShieldAlert, description: "TCC curve coordination for primary and backup relays." },
   ctsizing:    { name: "CT Sizing", icon: ShieldAlert, description: "Knee Point Voltage and Burden calculation as per IS 2705 / IEC 61869." },
+  conductorsizing: { name: "Conductor Sizing", icon: Scale, description: "Continuous ampacity heat balance & short-circuit thermal withstand check." },
   ai:          { name: "AI Insights", icon: Sparkles, description: "AI-powered analysis recommendations across all modules." },
   report:      { name: "Engineering Report", icon: FileText, description: "Consolidated engineering report with calculation traces." },
   projects:    { name: "Projects & Cases", icon: FolderOpen, description: "Manage projects, studies, and cases." },
 };
 
 // Modules that have the Right Inspector panel
-const MODULES_WITH_INSPECTOR: ModuleId[] = ["scforces", "sagtension", "fault", "loadflow", "losses", "ctsizing", "protection"];
+const MODULES_WITH_INSPECTOR: ModuleId[] = ["scforces", "sagtension", "conductorsizing", "fault", "loadflow", "losses", "ctsizing", "protection"];
 
 export default function V2Page() {
   // ─── Workspace State ───
@@ -116,6 +118,7 @@ export default function V2Page() {
   // Global state
   const [systemVoltage_kV] = useState(220);
   const [baseMVA] = useState(1000);
+  const [conductorSizingInputs, setConductorSizingInputs] = useState<ConductorSizingState>(getDefaultConductorSizingState);
 
   // ─── History-tracked project state (scoped to ACTIVE CASE) ───
   const projectHistory = useHistoryState<ProjectState>(
@@ -521,6 +524,8 @@ export default function V2Page() {
         return <ProtectionCanvas inputs={project.protectionInputs} />;
       case "contingency":
         return <ContingencyCanvas buses={project.lfBuses} branches={project.lfBranches} baseMva={project.lfBaseMva} />;
+      case "conductorsizing":
+        return <ConductorSizingCanvas inputs={conductorSizingInputs} onUpdateInputs={setConductorSizingInputs} />;
       default: {
         const config = MODULE_CONFIG[activeModule];
         if (config) return <PlaceholderModule name={config.name} icon={config.icon} description={config.description} />;
@@ -595,6 +600,13 @@ export default function V2Page() {
             inputs={project.protectionInputs}
             onUpdate={updateProtectionInputs}
             hasLinkedFault={project.hasLinkedFault}
+          />
+        );
+      case "conductorsizing":
+        return (
+          <ConductorSizingInspector
+            inputs={conductorSizingInputs}
+            onUpdateInputs={setConductorSizingInputs}
           />
         );
       default:

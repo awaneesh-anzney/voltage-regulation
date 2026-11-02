@@ -3,14 +3,14 @@
 import { useState } from "react";
 import {
   Zap, BarChart3, DollarSign, Shield, Network, ShieldAlert, Activity,
-  Cable, Sparkles, FileText, History, Home, Lock, Gauge,
+  Cable, Sparkles, FileText, History, Home, Lock, Gauge, Scale,
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeft, Settings, FolderOpen
 } from "lucide-react";
 
 export type ModuleId =
   | "home" | "projects"
   | "fault" | "loadflow" | "losses" | "contingency" | "protection" | "ctsizing"
-  | "sagtension" | "scforces"
+  | "conductorsizing" | "sagtension" | "scforces"
   | "ai" | "report" | "history";
 
 interface NavItem {
@@ -46,8 +46,9 @@ const NAV_GROUPS: NavGroup[] = [
     accent: "teal",
     emoji: "🏗️",
     items: [
-      { id: "sagtension", label: "Sag-Tension",   icon: Cable },
-      { id: "scforces",   label: "SC Forces",     icon: Activity },
+      { id: "conductorsizing", label: "Conductor Sizing", icon: Scale },
+      { id: "sagtension",      label: "Sag-Tension",      icon: Cable },
+      { id: "scforces",        label: "SC Forces",        icon: Activity },
     ],
   },
   {

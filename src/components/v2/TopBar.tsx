@@ -16,6 +16,7 @@ const MODULE_BREADCRUMBS: Record<ModuleId, { domain: string; domainEmoji: string
   contingency: { domain: "Electrical", domainEmoji: "⚡", label: "N-1 Contingency" },
   protection:  { domain: "Electrical", domainEmoji: "⚡", label: "Protection Coordination" },
   ctsizing:    { domain: "Electrical", domainEmoji: "⚡", label: "CT Sizing" },
+  conductorsizing: { domain: "Mechanical", domainEmoji: "🏗️", label: "Conductor Sizing" },
   sagtension:  { domain: "Mechanical", domainEmoji: "🏗️", label: "Sag-Tension" },
   scforces:    { domain: "Mechanical", domainEmoji: "🏗️", label: "SC Forces" },
   ai:          { domain: "Output", domainEmoji: "📊", label: "AI Insights" },

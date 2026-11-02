@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Search, ShieldAlert, Network, DollarSign, Shield, Cable, Activity,
   Sparkles, FileText, History, Home, Play, FileDown, Zap, Command,
-  FilePlus, Save, FolderOpen, Gauge
+  FilePlus, Save, FolderOpen, Gauge, Scale
 } from "lucide-react";
 import type { ModuleId } from "@/components/v2/Sidebar";
 
@@ -41,6 +41,7 @@ export function CommandPalette({ isOpen, onClose, onNavigate, onRunCalculation, 
     { id: "contingency", label: "N-1 Contingency", description: "Single outage reliability", icon: Shield, category: "navigate", action: () => { onNavigate("contingency"); onClose(); } },
     { id: "protection", label: "Protection Coord.", description: "TCC curve coordination", icon: ShieldAlert, category: "navigate", action: () => { onNavigate("protection"); onClose(); } },
     { id: "ctsizing", label: "CT Sizing", description: "IS 2705 / IEC 61869", icon: Gauge, category: "navigate", action: () => { onNavigate("ctsizing"); onClose(); } },
+    { id: "conductorsizing", label: "Conductor Sizing", description: "Continuous ampacity & SC withstand check", icon: Scale, category: "navigate", action: () => { onNavigate("conductorsizing"); onClose(); } },
     { id: "sagtension", label: "Sag-Tension", description: "IS 802 catenary calculation", icon: Cable, category: "navigate", action: () => { onNavigate("sagtension"); onClose(); } },
     { id: "scforces", label: "SC Forces", description: "IEC 60865-1 mechanical forces", icon: Activity, category: "navigate", action: () => { onNavigate("scforces"); onClose(); } },
     { id: "ai", label: "AI Insights", description: "AI-powered recommendations", icon: Sparkles, category: "navigate", action: () => { onNavigate("ai"); onClose(); } },
