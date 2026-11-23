@@ -3,13 +3,13 @@
 import { useState } from "react";
 import {
   Zap, BarChart3, DollarSign, Shield, Network, ShieldAlert, Activity,
-  Cable, Sparkles, FileText, History, Home, Lock, Gauge, Scale,
+  Cable, Sparkles, FileText, History, Home, Lock, Gauge, Scale, Compass,
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeft, Settings, FolderOpen
 } from "lucide-react";
 
 export type ModuleId =
   | "home" | "projects"
-  | "fault" | "loadflow" | "losses" | "contingency" | "protection" | "ctsizing"
+  | "fault" | "loadflow" | "losses" | "contingency" | "protection" | "ctsizing" | "earthmat"
   | "conductorsizing" | "sagtension" | "scforces"
   | "ai" | "report" | "history";
 
@@ -39,6 +39,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id: "contingency", label: "N-1 Contingency",    icon: Shield },
       { id: "protection",  label: "Protection Coord.",  icon: ShieldAlert },
       { id: "ctsizing",    label: "CT Sizing",          icon: Gauge },
+      { id: "earthmat",    label: "Earthmat Design",    icon: Compass },
     ],
   },
   {

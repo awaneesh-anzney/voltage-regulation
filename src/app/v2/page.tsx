@@ -18,6 +18,8 @@ import { ProtectionInspector, ProtectionCanvas } from "@/components/v2/Protectio
 import { ContingencyCanvas } from "@/components/v2/ContingencyModule";
 import { ProjectManagerModule } from "@/components/v2/ProjectManagerModule";
 import { ConductorSizingCanvas, ConductorSizingInspector, getDefaultConductorSizingState, ConductorSizingState } from "@/components/v2/ConductorSizingModule";
+import { EarthmatCanvas, EarthmatInspector, getDefaultEarthmatInputs } from "@/components/v2/EarthmatModule";
+import type { EarthmatInput } from "@/lib/earthmatEngine";
 import type { ModuleId } from "@/components/v2/Sidebar";
 
 import { computeSCForces, getDefaultInputs } from "@/lib/scForcesEngine";
@@ -38,7 +40,7 @@ import type { ProtectionInputs } from "@/lib/protectionEngine";
 
 import {
   Network, DollarSign, Shield,
-  Sparkles, FileText, History, Construction, ShieldAlert, FolderOpen, Scale
+  Sparkles, FileText, History, Construction, ShieldAlert, FolderOpen, Scale, Compass
 } from "lucide-react";
 
 import { ProjectState } from "@/lib/workspaceTypes";
@@ -70,13 +72,14 @@ const MODULE_CONFIG: Record<string, { name: string; icon: React.ElementType; des
   protection:  { name: "Protection Coordination", icon: ShieldAlert, description: "TCC curve coordination for primary and backup relays." },
   ctsizing:    { name: "CT Sizing", icon: ShieldAlert, description: "Knee Point Voltage and Burden calculation as per IS 2705 / IEC 61869." },
   conductorsizing: { name: "Conductor Sizing", icon: Scale, description: "Continuous ampacity heat balance & short-circuit thermal withstand check." },
+  earthmat:    { name: "Earthmat Design", icon: Compass, description: "Substation grounding grid & earthmat design calculation as per IEEE Std 80-2000 & CBIP 223." },
   ai:          { name: "AI Insights", icon: Sparkles, description: "AI-powered analysis recommendations across all modules." },
   report:      { name: "Engineering Report", icon: FileText, description: "Consolidated engineering report with calculation traces." },
   projects:    { name: "Projects & Cases", icon: FolderOpen, description: "Manage projects, studies, and cases." },
 };
 
 // Modules that have the Right Inspector panel
-const MODULES_WITH_INSPECTOR: ModuleId[] = ["scforces", "sagtension", "conductorsizing", "fault", "loadflow", "losses", "ctsizing", "protection"];
+const MODULES_WITH_INSPECTOR: ModuleId[] = ["scforces", "sagtension", "conductorsizing", "fault", "loadflow", "losses", "ctsizing", "protection", "earthmat"];
 
 export default function V2Page() {
   // ─── Workspace State ───
@@ -119,6 +122,7 @@ export default function V2Page() {
   const [systemVoltage_kV] = useState(220);
   const [baseMVA] = useState(1000);
   const [conductorSizingInputs, setConductorSizingInputs] = useState<ConductorSizingState>(getDefaultConductorSizingState);
+  const [earthmatInputs, setEarthmatInputs] = useState<EarthmatInput>(getDefaultEarthmatInputs);
 
   // ─── History-tracked project state (scoped to ACTIVE CASE) ───
   const projectHistory = useHistoryState<ProjectState>(
@@ -526,6 +530,13 @@ export default function V2Page() {
         return <ContingencyCanvas buses={project.lfBuses} branches={project.lfBranches} baseMva={project.lfBaseMva} />;
       case "conductorsizing":
         return <ConductorSizingCanvas inputs={conductorSizingInputs} onUpdateInputs={setConductorSizingInputs} />;
+      case "earthmat":
+        return (
+          <EarthmatCanvas
+            inputs={earthmatInputs}
+            onApplyOptimization={(partial) => setEarthmatInputs(prev => ({ ...prev, ...partial }))}
+          />
+        );
       default: {
         const config = MODULE_CONFIG[activeModule];
         if (config) return <PlaceholderModule name={config.name} icon={config.icon} description={config.description} />;
@@ -607,6 +618,13 @@ export default function V2Page() {
           <ConductorSizingInspector
             inputs={conductorSizingInputs}
             onUpdateInputs={setConductorSizingInputs}
+          />
+        );
+      case "earthmat":
+        return (
+          <EarthmatInspector
+            inputs={earthmatInputs}
+            onUpdate={(partial) => setEarthmatInputs(prev => ({ ...prev, ...partial }))}
           />
         );
       default:
