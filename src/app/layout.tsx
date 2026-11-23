@@ -14,8 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Transmission Line Calculator",
-  description: "ACSR Conductor Voltage Regulation",
+  title: "AC Substation Calculations",
+  description: "AC Substation Calculations & Engineering Suite",
+  openGraph: {
+    title: "AC Substation Calculations",
+    description: "AC Substation Calculations & Engineering Suite",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
