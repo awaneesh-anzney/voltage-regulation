@@ -113,12 +113,12 @@ export function BentoHome() {
         <BentoCard title="Fault Level">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[28px] font-mono font-bold text-blue-400">45.2</div>
+              <div className="text-[28px] font-mono font-bold text-blue-700 dark:text-blue-400">45.2</div>
               <div className="text-[11px] text-muted-foreground font-mono">kA (3-phase)</div>
             </div>
             <RadialGauge value={45.2} max={100} label="45% cap" color="#3b82f6" />
           </div>
-          <div className="flex items-center gap-1.5 mt-3 text-[11px] text-emerald-400">
+          <div className="flex items-center gap-1.5 mt-3 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Within equipment rating</span>
           </div>
@@ -126,8 +126,8 @@ export function BentoHome() {
 
         {/* SC Forces */}
         <BentoCard title="SC Forces Status">
-          <div className="text-[32px] font-mono font-bold text-emerald-400">PASS</div>
-          <div className="text-[12px] text-muted-foreground mt-1 font-mono">F_max = 42.1 kN</div>
+          <div className="text-[32px] font-mono font-bold text-emerald-700 dark:text-emerald-400">PASS</div>
+          <div className="text-[12px] text-muted-foreground mt-1 font-mono font-medium">F_max = 42.1 kN</div>
           <div className="mt-3 space-y-1.5">
             {[
               { label: "F_st", pct: 30, color: "#3b82f6" },
@@ -136,7 +136,7 @@ export function BentoHome() {
             ].map((bar) => (
               <div key={bar.label} className="flex items-center gap-2">
                 <span className="text-[9px] text-muted-foreground font-mono w-6">{bar.label}</span>
-                <div className="flex-1 h-1.5 bg-card rounded-full overflow-hidden">
+                <div className="flex-1 h-1.5 bg-card rounded-full overflow-hidden border border-border/40">
                   <div className="h-full rounded-full transition-all duration-700" style={{ width: `${bar.pct}%`, background: bar.color }} />
                 </div>
               </div>
@@ -151,24 +151,24 @@ export function BentoHome() {
         <BentoCard title="Sag-Tension Summary">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[11px] text-muted-foreground mb-0.5">Max Sag</div>
-              <div className="text-[22px] font-mono font-bold text-amber-400">8.52 m</div>
-              <div className="text-[10px] text-muted-foreground/80 font-mono">at 75°C no-wind</div>
+              <div className="text-[11px] text-muted-foreground mb-0.5 font-medium">Max Sag</div>
+              <div className="text-[22px] font-mono font-bold text-amber-800 dark:text-amber-400">8.52 m</div>
+              <div className="text-[10px] text-muted-foreground font-mono">at 75°C no-wind</div>
             </div>
             <div>
-              <div className="text-[11px] text-muted-foreground mb-0.5">Clearance</div>
-              <div className="text-[22px] font-mono font-bold text-emerald-400">17.98 m</div>
-              <div className="text-[10px] text-muted-foreground/80 font-mono">min req: 8.84 m</div>
+              <div className="text-[11px] text-muted-foreground mb-0.5 font-medium">Clearance</div>
+              <div className="text-[22px] font-mono font-bold text-emerald-700 dark:text-emerald-400">17.98 m</div>
+              <div className="text-[10px] text-muted-foreground font-mono">min req: 8.84 m</div>
             </div>
           </div>
           {/* Mini catenary */}
           <svg viewBox="0 0 200 50" className="w-full mt-3">
-            <line x1="10" y1="10" x2="190" y2="10" stroke="#1e293b" strokeWidth="0.5" />
-            <rect x="6" y="5" width="8" height="40" rx="2" fill="#334155" />
-            <rect x="186" y="5" width="8" height="40" rx="2" fill="#334155" />
+            <line x1="10" y1="10" x2="190" y2="10" className="stroke-border" strokeWidth="0.5" />
+            <rect x="6" y="5" width="8" height="40" rx="2" className="fill-muted-foreground/30" />
+            <rect x="186" y="5" width="8" height="40" rx="2" className="fill-muted-foreground/30" />
             <path d="M 10 10 Q 100 45, 190 10" fill="none" stroke="#f59e0b" strokeWidth="2" />
-            <line x1="10" y1="42" x2="190" y2="42" stroke="#475569" strokeWidth="0.5" strokeDasharray="4,3" />
-            <text x="100" y="48" textAnchor="middle" fill="#64748b" fontSize="6" fontFamily="monospace">ground</text>
+            <line x1="10" y1="42" x2="190" y2="42" className="stroke-border" strokeWidth="0.5" strokeDasharray="4,3" />
+            <text x="100" y="48" textAnchor="middle" className="fill-muted-foreground font-mono text-[7px]">ground</text>
           </svg>
         </BentoCard>
 
@@ -176,12 +176,12 @@ export function BentoHome() {
         <BentoCard title="Quick Actions">
           <div className="space-y-2">
             {[
-              { label: "Run Full Analysis", icon: Play, gradient: "from-blue-500 to-indigo-500" },
-              { label: "Generate Report", icon: FileDown, gradient: "from-slate-600 to-slate-700" },
-              { label: "Compare Scenarios", icon: SlidersHorizontal, gradient: "from-teal-600 to-cyan-600" },
+              { label: "Run Full Analysis", icon: Play, gradient: "from-blue-600 to-indigo-600" },
+              { label: "Generate Report", icon: FileDown, gradient: "from-slate-700 to-slate-800" },
+              { label: "Compare Scenarios", icon: SlidersHorizontal, gradient: "from-teal-700 to-cyan-700" },
             ].map((action) => (
               <button key={action.label}
-                className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-semibold text-foreground bg-gradient-to-r ${action.gradient} hover:brightness-110 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 shadow-md`}
+                className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-semibold text-white bg-gradient-to-r ${action.gradient} hover:brightness-110 transition-all cursor-pointer hover:-translate-y-px active:translate-y-0 shadow-md`}
               >
                 <action.icon className="w-3.5 h-3.5" />
                 {action.label}
@@ -194,15 +194,15 @@ export function BentoHome() {
         <BentoCard title="Recent Activity">
           <div className="space-y-3">
             {[
-              { text: "SC Forces calculated", time: "2h ago", icon: Activity, color: "text-teal-400" },
-              { text: "Fault Analysis updated", time: "5h ago", icon: ShieldAlert, color: "text-blue-400" },
-              { text: "Sag-Tension saved", time: "1d ago", icon: Cable, color: "text-amber-400" },
+              { text: "SC Forces calculated", time: "2h ago", icon: Activity, color: "text-teal-700 dark:text-teal-400" },
+              { text: "Fault Analysis updated", time: "5h ago", icon: ShieldAlert, color: "text-blue-700 dark:text-blue-400" },
+              { text: "Sag-Tension saved", time: "1d ago", icon: Cable, color: "text-amber-800 dark:text-amber-400" },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-2.5">
                 <div className={`mt-0.5 ${item.color}`}><item.icon className="w-3.5 h-3.5" /></div>
                 <div className="flex-1">
-                  <div className="text-[12px] text-foreground/90">{item.text}</div>
-                  <div className="text-[10px] text-muted-foreground/80 font-mono">{item.time}</div>
+                  <div className="text-[12px] text-foreground font-medium">{item.text}</div>
+                  <div className="text-[10px] text-muted-foreground font-mono">{item.time}</div>
                 </div>
               </div>
             ))}
@@ -211,14 +211,14 @@ export function BentoHome() {
       </div>
 
       {/* Row 3: Warnings */}
-      <BentoCard title="⚠️ Warnings & Alerts" className="border-amber-500/15">
+      <BentoCard title="⚠️ Warnings & Alerts" className="border-amber-500/20 bg-amber-500/[0.03]">
         <div className="space-y-2">
           {[
             "Clearance violated at 75°C in Sag-Tension — increase tower height or reduce span",
             "Fault current approaching 50kA threshold — verify equipment rating",
           ].map((w, i) => (
-            <div key={i} className="flex items-start gap-2 text-[12px] text-amber-300/80">
-              <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-500" />
+            <div key={i} className="flex items-start gap-2 text-[12px] text-amber-900 dark:text-amber-300 font-medium">
+              <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
               <span>{w}</span>
             </div>
           ))}

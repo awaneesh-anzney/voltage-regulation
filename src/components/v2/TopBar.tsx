@@ -106,7 +106,7 @@ export function TopBar({
           </div>
           <div className="flex items-center gap-2">
             <span className="text-[15px] font-bold text-foreground tracking-tight">GridIntel</span>
-            <span className="text-[10px] font-bold text-blue-400 bg-blue-500/15 border border-blue-500/30 px-2 py-0.5 rounded-full uppercase tracking-widest">v2.0</span>
+            <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400 bg-blue-500/15 border border-blue-600/30 dark:border-blue-500/30 px-2 py-0.5 rounded-full uppercase tracking-widest">v2.0</span>
           </div>
         </div>
 
@@ -208,7 +208,7 @@ export function TopBar({
             {activeStudyName && (
               <>
                 <span className="hidden sm:inline-block text-muted-foreground/50 text-[11px] font-light shrink-0">/</span>
-                <span className="hidden sm:inline-block text-[11px] sm:text-[12px] font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 truncate min-w-0">
+                <span className="hidden sm:inline-block text-[11px] sm:text-[12px] font-semibold text-amber-800 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-600/30 dark:border-amber-500/20 truncate min-w-0">
                   {activeStudyName}
                 </span>
               </>
@@ -216,7 +216,7 @@ export function TopBar({
             {activeCaseName && (
               <>
                 <span className="hidden sm:inline-block text-muted-foreground/50 text-[11px] font-light shrink-0">/</span>
-                <span className="hidden sm:inline-block text-[11px] sm:text-[12px] font-medium text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 truncate min-w-0">
+                <span className="hidden sm:inline-block text-[11px] sm:text-[12px] font-semibold text-emerald-800 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-600/30 dark:border-emerald-500/20 truncate min-w-0">
                   {activeCaseName}
                 </span>
               </>
@@ -229,13 +229,13 @@ export function TopBar({
       <div className="flex items-center gap-3 shrink-0">
         {/* State Pills */}
         <div className="hidden md:flex items-center gap-2 mr-2">
-          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 dark:text-blue-400 text-[11px] font-bold tracking-wider font-mono">
+          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-600/30 dark:border-blue-500/20 text-blue-700 dark:text-blue-400 text-[11px] font-bold tracking-wider font-mono">
             {systemVoltage_kV} kV
           </div>
-          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 text-[11px] font-bold tracking-wider font-mono">
+          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-600/30 dark:border-purple-500/20 text-purple-700 dark:text-purple-400 text-[11px] font-bold tracking-wider font-mono">
             {baseMVA} MVA
           </div>
-          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 text-[11px] font-bold tracking-wider">
+          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-600/30 dark:border-teal-500/20 text-teal-800 dark:text-teal-400 text-[11px] font-bold tracking-wider">
             <Link2 className="w-3 h-3" />
             {activeLinksCount} Link{activeLinksCount !== 1 ? 's' : ''} Active
           </div>
